@@ -1,0 +1,82 @@
+package comp
+
+import (
+	"fmt"
+	"go-live-view/html"
+	"go-live-view/rend"
+	"go-live-view/std"
+	"go-live-view/uploads"
+	"strings"
+)
+
+func Unpkg(pkg, version string) rend.Node {
+	return html.Script(
+		html.Attrs(
+			html.ScriptDeferAttr("true"),
+			html.ScriptTypeAttr("text/javascript"),
+			html.ScriptSrcAttr(
+				fmt.Sprintf("https://unpkg.com/%s@%s", pkg, version),
+			),
+		),
+	)
+}
+
+func Layout(session string, child rend.Node) rend.Node {
+	return html.Html(
+		html.Head(
+			Unpkg("phoenix", "1.7.10"),
+			Unpkg("phoenix_live_view", "0.20.3"),
+			Unpkg("topbar", "2.0.2"),
+			Unpkg("apexcharts", "3.26.0"),
+		),
+		html.Body(
+			html.Div(
+				html.Attrs(
+					html.DataAttr("phx-main"),
+					html.DataAttr("phx-session", session),
+					html.IdAttr(
+						fmt.Sprintf("phx-%s", session),
+					),
+				),
+				child,
+			),
+			html.Script(
+				html.Attrs(
+					html.ScriptDeferAttr("true"),
+					html.Attr("phx-track-static"),
+					html.ScriptTypeAttr("text/javascript"),
+					html.ScriptSrcAttr("/assets/app.js"),
+				),
+			),
+		),
+	)
+}
+
+func UploadInput(u *uploads.Config, children ...rend.Node) rend.Node {
+	return std.Component(
+		html.Input(
+			html.Attr("id", u.Ref),
+			html.Attr("type", "file"),
+			html.Attr("name", u.Name),
+			html.Attr("accept", strings.Join(u.Accept, ",")),
+			html.Attr("data-phx-hook", "Phoenix.LiveFileUpload"),
+			html.Attr("data-phx-update", "ignore"),
+			html.Attr("data-phx-upload-ref", u.Ref),
+			html.Attr("data-phx-active-refs", u.ActiveRefs()),
+			html.Attr("data-phx-done-refs", u.DoneRefs()),
+			html.Attr("data-phx-preflighted-refs", u.PreflightRefs()),
+			html.Attrs(
+				std.TernaryNode(
+					u.MaxEntries > 1,
+					html.Attr("multiple"),
+					nil,
+				),
+				std.TernaryNode(
+					u.AutoUpload,
+					html.Attr("data-phx-auto-upload"),
+					nil,
+				),
+				std.Group(children...),
+			),
+		))
+}
