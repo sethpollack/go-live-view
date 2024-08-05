@@ -37,8 +37,8 @@ func (l *Live) Event(s lv.Socket, event string, p params.Params) error {
 	}
 
 	if event == "save" {
-		l.uploads.Consume("mydoc", func(path string) {
-			fmt.Println(path)
+		l.uploads.Consume("mydoc", func(path string, entry *uploads.Entry) {
+			fmt.Printf("Consuming %s", entry.Meta.Name)
 		})
 	}
 

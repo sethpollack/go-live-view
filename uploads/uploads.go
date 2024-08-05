@@ -33,6 +33,7 @@ type Config struct {
 }
 
 type Meta struct {
+	Name         string
 	RelativePath string
 	Size         int
 	LastModified int
@@ -106,7 +107,7 @@ func (u *Uploads) AllowUpload(name string, options ...Option) {
 		ChunkSize:    64 * 1024,
 		ChunkTimeout: 10 * 1000,
 		Accept:       []string{"*"},
-		Writer:       &TmpFileWriter{},
+		Writer:       NewTmpWriter(),
 	}
 
 	for _, option := range options {
@@ -116,14 +117,16 @@ func (u *Uploads) AllowUpload(name string, options ...Option) {
 	u.uploads[ref] = c
 }
 
-func (u *Uploads) Consume(name string, f func(path string)) error {
+func (u *Uploads) Consume(name string, f func(path string, e *Entry)) error {
 	cfg := u.GetByName(name)
 	if cfg == nil {
 		return fmt.Errorf("upload not found")
 	}
 	for _, entry := range cfg.Entries {
 		if entry.Done {
-			f(entry.Meta.RelativePath)
+			cfg.Writer.Consume(entry.Ref, func(path string) {
+				f(path, entry)
+			})
 		}
 	}
 
@@ -159,10 +162,11 @@ func (u *Uploads) OnValidate(params params.Params) {
 				c.Entries = append(c.Entries, &Entry{
 					Ref: entry.String("ref"),
 					Meta: Meta{
-						FileType:     entry.String("file_type"),
+						Name:         entry.String("name"),
+						FileType:     entry.String("type"),
+						Size:         entry.Int("size"),
 						LastModified: entry.Int("last_modified"),
 						RelativePath: entry.String("relative_path"),
-						Size:         entry.Int("size"),
 					},
 				})
 			}
@@ -179,10 +183,11 @@ func (c *Config) OnAllowUploads(params params.Params) {
 		c.Entries[i] = &Entry{
 			Ref: entry.String("ref"),
 			Meta: Meta{
-				FileType:     entry.String("file_type"),
+				Name:         entry.String("name"),
+				FileType:     entry.String("type"),
+				Size:         entry.Int("size"),
 				LastModified: entry.Int("last_modified"),
 				RelativePath: entry.String("relative_path"),
-				Size:         entry.Int("size"),
 			},
 			UUID:      c.Ref + "-" + entry.String("ref"), // TODO: encode with proper token
 			Preflight: true,
@@ -200,7 +205,7 @@ func (c *Config) OnChunk(ref string, data []byte, close func() error) error {
 
 		entry.closeClient = close
 
-		_, err := c.Writer.WriteChunk(data)
+		_, err := c.Writer.WriteChunk(ref, data)
 		if err != nil {
 			return err
 		}
