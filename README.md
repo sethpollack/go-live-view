@@ -43,3 +43,5 @@ func (l *Live) Render(_ rend.Node) (rend.Node, error) {
 }
 
 ```
+
+See the [examples](https://github.com/sethpollack/go-live-view/tree/main/examples) directory for full examples.
