@@ -48,7 +48,7 @@ func (n *Node[T]) AddRoute(path string, route T) (*Node[T], error) {
 	}
 
 	if !inserted {
-		return nil, fmt.Errorf("route already exists")
+		return nil, fmt.Errorf("route %s already exists", path)
 	}
 
 	current.route = route
@@ -57,13 +57,17 @@ func (n *Node[T]) AddRoute(path string, route T) (*Node[T], error) {
 }
 
 func (n *Node[T]) FindNode(path string) (*Node[T], map[string]any, error) {
-	segments := strings.Split(path, "/")
+	segments := strings.Split(path, "/")[1:]
 
 	currentFind := n
 	currentParams := make(map[string]any)
 
 	current := n
 	for i, segment := range segments {
+		if len(current.children) == 0 && i == len(segments)-1 && current.segment == segment {
+			return current, currentParams, nil
+		}
+
 		currentPath := strings.Join(segments[i:], "/")
 
 		if child, ok := current.children[segment]; ok {
