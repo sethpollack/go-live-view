@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"go-live-view/comp"
+	comp "go-live-view/components"
 	"go-live-view/examples/async"
 	"go-live-view/examples/broadcast"
 	"go-live-view/examples/charts"

@@ -2,7 +2,7 @@ package uploads
 
 import (
 	"fmt"
-	"go-live-view/comp"
+	comp "go-live-view/components"
 	"go-live-view/html"
 	lv "go-live-view/liveview"
 	"go-live-view/params"
