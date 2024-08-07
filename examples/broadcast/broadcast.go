@@ -1,6 +1,7 @@
 package broadcast
 
 import (
+	"fmt"
 	"go-live-view/html"
 	lv "go-live-view/liveview"
 	"go-live-view/params"
@@ -12,6 +13,12 @@ import (
 type Live struct {
 	lv.Base
 	Time time.Time
+}
+
+func New() *Live {
+	return &Live{
+		Time: time.Now(),
+	}
 }
 
 func (l *Live) Mount(s lv.Socket, _ params.Params) error {

@@ -100,7 +100,7 @@ func setupRoutes() lifecycle.Router {
 			{
 				Route: &router.Route{
 					Path: "/broadcast",
-					View: &broadcast.Live{},
+					View: broadcast.New(),
 				},
 			},
 			{
