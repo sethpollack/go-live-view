@@ -26,8 +26,8 @@ func TestFindNode(t *testing.T) {
 		{
 			name:         "simple",
 			paths:        []string{"/", "/foo", "/bar"},
-			search:       "/foo",
-			expect:       "/foo",
+			search:       "/bar",
+			expect:       "/bar",
 			expectParams: map[string]any{},
 		},
 		{
@@ -80,7 +80,7 @@ func TestFindNode(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tree := New[string]()
 			for _, path := range tc.paths {
-				_, err := tree.AddRoute(path, path)
+				err := tree.AddRoute(path, path)
 				if err != nil {
 					assert.Equal(t, tc.err, err)
 					return

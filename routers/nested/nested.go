@@ -52,8 +52,7 @@ func NewRouter() *router {
 }
 
 func (r *router) HandleLive(routes *Routes) error {
-	_, err := r.addRoutes(r.root, routes)
-	return err
+	return r.addRoutes(routes.Route.Path, routes)
 }
 
 func (r *router) GetRoute(path string) (lifecycle.Route, error) {
@@ -101,34 +100,41 @@ func (r *router) findNode(path string) (*tree.Node[*Route], map[string]any, erro
 	return node, params, nil
 }
 
-func (r *router) addRoutes(node *tree.Node[*Route], routes *Routes) (*tree.Node[*Route], error) {
+func (r *router) addRoutes(path string, routes *Routes) error {
 	if routes.Route.Path == "" {
-		return nil, fmt.Errorf("path is required")
+		return fmt.Errorf("path is required")
 	}
 
 	if routes.Route.View == nil {
-		return nil, fmt.Errorf("view is required")
+		return fmt.Errorf("view is required")
 	}
 
 	routes.Route.router = r
 
-	newNode, err := node.AddRoute(routes.Route.Path, routes.Route)
+	err := r.root.AddRoute(path, routes.Route)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for _, child := range routes.Children {
 		if child.Route.Layout != nil {
-			return nil, fmt.Errorf("child routes do not support layout")
+			return fmt.Errorf("child routes do not support layout")
 		}
 		child.Route.parent = routes.Route
-		_, err := r.addRoutes(newNode, child)
+		var childPath string
+		if path == "/" {
+			childPath = child.Route.Path
+		} else {
+			childPath = path + child.Route.Path
+		}
+
+		err := r.addRoutes(childPath, child)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return newNode, nil
+	return nil
 }
 
 func findParent(route *Route) *Route {
