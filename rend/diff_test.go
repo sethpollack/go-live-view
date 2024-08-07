@@ -143,6 +143,29 @@ func TestDiff(t *testing.T) {
 			},
 		},
 		{
+			name: "dynamic type changed",
+			a: &Root{
+				Rend: &Rend{
+					Dynamic: map[string]interface{}{
+						"0": "a",
+					},
+				},
+			},
+			b: &Root{
+				Rend: &Rend{
+					Dynamic: map[string]interface{}{
+						"0": &Rend{
+							Static:      []string{"", ""},
+							Fingerprint: "123",
+							Dynamic: map[string]interface{}{
+								"0": "a",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "component added",
 			a: &Root{
 				Rend: &Rend{

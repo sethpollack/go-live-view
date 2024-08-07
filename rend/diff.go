@@ -99,6 +99,14 @@ func compareRend(oldRend, newRend *Rend) *Rend {
 			continue
 		}
 
+		if !sameType(oldDynamic, newDynamic) {
+			if diff.Dynamic == nil {
+				diff.Dynamic = make(map[string]any)
+			}
+			diff.Dynamic[key] = newDynamic
+			continue
+		}
+
 		newVal, changed := elementsEqual(oldDynamic, newDynamic)
 		if changed {
 			if diff.Dynamic == nil {
@@ -150,4 +158,24 @@ func elementsEqual(a, b any) (any, bool) {
 	}
 
 	return nil, true
+}
+
+func sameType(a, b any) bool {
+	switch a.(type) {
+	case int64:
+		_, ok := b.(int64)
+		return ok
+	case string:
+		_, ok := b.(string)
+		return ok
+	case *Rend:
+		_, ok := b.(*Rend)
+		return ok
+	case *Comprehension:
+		_, ok := b.(*Comprehension)
+		return ok
+	default:
+		// Fall back to reflection for unknown types
+		return reflect.TypeOf(a) == reflect.TypeOf(b)
+	}
 }
