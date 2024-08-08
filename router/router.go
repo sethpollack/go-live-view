@@ -197,7 +197,14 @@ func WithLayout(layout func(string, rend.Node) rend.Node) routeOption {
 
 func WithParams(params params.Params) routeOption {
 	return func(r *route) {
-		r.Params = params
+		combined := make(map[string]any)
+		for k, v := range r.Params {
+			combined[k] = v
+		}
+		for k, v := range params {
+			combined[k] = v
+		}
+		r.Params = combined
 	}
 }
 
