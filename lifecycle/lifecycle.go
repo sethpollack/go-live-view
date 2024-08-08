@@ -74,10 +74,6 @@ func (l *lifecycle) Params(s lv.Socket, p params.Params) (*rend.Root, error) {
 		return nil, err
 	}
 
-	l.route = route
-
-	view := route.GetView()
-
 	if !l.router.Routable(l.route, route) {
 		err := s.Redirect(url)
 		if err != nil {
@@ -88,6 +84,8 @@ func (l *lifecycle) Params(s lv.Socket, p params.Params) (*rend.Root, error) {
 	}
 
 	l.route = route
+
+	view := route.GetView()
 
 	if err := view.Params(s, p); err != nil {
 		return nil, err
