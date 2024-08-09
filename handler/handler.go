@@ -3,11 +3,12 @@ package handler
 import (
 	"context"
 	"fmt"
-	"go-live-view/channel"
-	"go-live-view/internal/ws"
-	"go-live-view/lifecycle"
-	lv "go-live-view/liveview"
 	"net/http"
+
+	"github.com/sethpollack/go-live-view/channel"
+	"github.com/sethpollack/go-live-view/internal/ws"
+	"github.com/sethpollack/go-live-view/lifecycle"
+	lv "github.com/sethpollack/go-live-view/liveview"
 
 	"github.com/rs/xid"
 )

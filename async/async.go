@@ -1,7 +1,7 @@
 package async
 
 import (
-	lv "go-live-view/liveview"
+	lv "github.com/sethpollack/go-live-view/liveview"
 )
 
 type State int

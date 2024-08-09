@@ -1,7 +1,7 @@
 package std
 
 import (
-	"go-live-view/rend"
+	"github.com/sethpollack/go-live-view/rend"
 )
 
 func NotNil(cond any, cb func() rend.Node) rend.Node {

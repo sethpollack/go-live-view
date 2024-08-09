@@ -2,9 +2,10 @@ package liveview
 
 import (
 	"fmt"
-	"go-live-view/channel"
-	"go-live-view/params"
 	"strings"
+
+	"github.com/sethpollack/go-live-view/channel"
+	"github.com/sethpollack/go-live-view/params"
 )
 
 var _ channel.Channel = &lvuChannel{}

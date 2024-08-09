@@ -3,7 +3,7 @@ package html
 
 import (
 	"fmt"
-	"go-live-view/rend"
+	"github.com/sethpollack/go-live-view/rend"
 )
 
 // Elements

@@ -2,10 +2,11 @@ package html
 
 import (
 	"flag"
-	"go-live-view/rend"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/sethpollack/go-live-view/rend"
 
 	"github.com/stretchr/testify/assert"
 )

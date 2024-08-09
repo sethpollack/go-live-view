@@ -2,10 +2,11 @@ package uploads
 
 import (
 	"fmt"
-	"go-live-view/internal/ref"
-	"go-live-view/params"
 	"strings"
 	"sync"
+
+	"github.com/sethpollack/go-live-view/internal/ref"
+	"github.com/sethpollack/go-live-view/params"
 )
 
 type Uploads struct {

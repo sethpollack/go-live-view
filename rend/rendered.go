@@ -4,7 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"go-live-view/internal/ref"
+
+	"github.com/sethpollack/go-live-view/internal/ref"
 )
 
 type Root struct {

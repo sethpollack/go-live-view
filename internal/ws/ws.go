@@ -1,9 +1,10 @@
 package ws
 
 import (
-	"go-live-view/channel"
 	"net"
 	"net/http"
+
+	"github.com/sethpollack/go-live-view/channel"
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"

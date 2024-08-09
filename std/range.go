@@ -1,9 +1,10 @@
 package std
 
 import (
-	"go-live-view/rend"
 	"strconv"
 	"strings"
+
+	"github.com/sethpollack/go-live-view/rend"
 )
 
 type mapRange[T any] struct {

@@ -2,9 +2,10 @@ package lifecycle
 
 import (
 	"fmt"
-	lv "go-live-view/liveview"
-	"go-live-view/params"
-	"go-live-view/rend"
+
+	lv "github.com/sethpollack/go-live-view/liveview"
+	"github.com/sethpollack/go-live-view/params"
+	"github.com/sethpollack/go-live-view/rend"
 )
 
 type Route interface {

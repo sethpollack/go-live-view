@@ -1,6 +1,6 @@
 package std
 
-import "go-live-view/rend"
+import "github.com/sethpollack/go-live-view/rend"
 
 func TernaryString(cond bool, a, b string) *string {
 	if cond {

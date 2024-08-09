@@ -1,4 +1,4 @@
-module go-live-view
+module github.com/sethpollack/go-live-view
 
 go 1.22.5
 

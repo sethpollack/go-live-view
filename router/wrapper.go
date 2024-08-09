@@ -1,10 +1,10 @@
 package router
 
 import (
-	lv "go-live-view/liveview"
-	"go-live-view/params"
-	"go-live-view/rend"
-	"go-live-view/uploads"
+	lv "github.com/sethpollack/go-live-view/liveview"
+	"github.com/sethpollack/go-live-view/params"
+	"github.com/sethpollack/go-live-view/rend"
+	"github.com/sethpollack/go-live-view/uploads"
 )
 
 var _ lv.LiveView = &wrapper{}

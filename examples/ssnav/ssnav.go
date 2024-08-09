@@ -1,11 +1,11 @@
 package ssnav
 
 import (
-	"go-live-view/html"
-	lv "go-live-view/liveview"
-	"go-live-view/params"
-	"go-live-view/rend"
-	"go-live-view/std"
+	"github.com/sethpollack/go-live-view/html"
+	lv "github.com/sethpollack/go-live-view/liveview"
+	"github.com/sethpollack/go-live-view/params"
+	"github.com/sethpollack/go-live-view/rend"
+	"github.com/sethpollack/go-live-view/std"
 )
 
 type Live struct {

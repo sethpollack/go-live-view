@@ -1,9 +1,10 @@
 package std
 
 import (
-	"go-live-view/rend"
-	s "go-live-view/stream"
 	"strings"
+
+	"github.com/sethpollack/go-live-view/rend"
+	s "github.com/sethpollack/go-live-view/stream"
 )
 
 type stream struct {

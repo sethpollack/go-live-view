@@ -2,9 +2,10 @@ package html
 
 import (
 	"fmt"
-	"go-live-view/rend"
 	"sort"
 	"strings"
+
+	"github.com/sethpollack/go-live-view/rend"
 )
 
 type attribute struct {

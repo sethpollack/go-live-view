@@ -2,9 +2,10 @@ package std
 
 import (
 	"fmt"
-	"go-live-view/rend"
 	"strconv"
 	"strings"
+
+	"github.com/sethpollack/go-live-view/rend"
 )
 
 type text struct {

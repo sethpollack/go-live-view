@@ -2,11 +2,12 @@ package std
 
 import (
 	"flag"
-	"go-live-view/html"
-	"go-live-view/rend"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/sethpollack/go-live-view/html"
+	"github.com/sethpollack/go-live-view/rend"
 
 	"github.com/stretchr/testify/assert"
 )

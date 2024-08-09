@@ -1,9 +1,9 @@
 package liveview
 
 import (
-	"go-live-view/params"
-	"go-live-view/rend"
-	"go-live-view/uploads"
+	"github.com/sethpollack/go-live-view/params"
+	"github.com/sethpollack/go-live-view/rend"
+	"github.com/sethpollack/go-live-view/uploads"
 )
 
 type LiveView interface {

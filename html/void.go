@@ -1,8 +1,9 @@
 package html
 
 import (
-	"go-live-view/rend"
 	"strings"
+
+	"github.com/sethpollack/go-live-view/rend"
 )
 
 type void struct {

@@ -2,11 +2,12 @@ package components
 
 import (
 	"fmt"
-	"go-live-view/html"
-	"go-live-view/rend"
-	"go-live-view/std"
-	"go-live-view/uploads"
 	"strings"
+
+	"github.com/sethpollack/go-live-view/html"
+	"github.com/sethpollack/go-live-view/rend"
+	"github.com/sethpollack/go-live-view/std"
+	"github.com/sethpollack/go-live-view/uploads"
 )
 
 func Unpkg(pkg, version string) rend.Node {

@@ -1,7 +1,7 @@
 package liveview
 
 import (
-	"go-live-view/channel"
+	"github.com/sethpollack/go-live-view/channel"
 )
 
 type Socket interface {

@@ -2,13 +2,14 @@ package scroll
 
 import (
 	"fmt"
-	"go-live-view/html"
-	"go-live-view/internal/ref"
-	lv "go-live-view/liveview"
-	"go-live-view/params"
-	"go-live-view/rend"
-	"go-live-view/std"
-	"go-live-view/stream"
+
+	"github.com/sethpollack/go-live-view/html"
+	"github.com/sethpollack/go-live-view/internal/ref"
+	lv "github.com/sethpollack/go-live-view/liveview"
+	"github.com/sethpollack/go-live-view/params"
+	"github.com/sethpollack/go-live-view/rend"
+	"github.com/sethpollack/go-live-view/std"
+	"github.com/sethpollack/go-live-view/stream"
 )
 
 type Live struct {

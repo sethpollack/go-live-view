@@ -2,14 +2,15 @@ package router
 
 import (
 	"fmt"
-	"go-live-view/internal/tree"
-	"go-live-view/lifecycle"
-	lv "go-live-view/liveview"
-	"go-live-view/params"
-	"go-live-view/rend"
 	"net/url"
 	"path"
 	"strings"
+
+	"github.com/sethpollack/go-live-view/internal/tree"
+	"github.com/sethpollack/go-live-view/lifecycle"
+	lv "github.com/sethpollack/go-live-view/liveview"
+	"github.com/sethpollack/go-live-view/params"
+	"github.com/sethpollack/go-live-view/rend"
 )
 
 var _ lifecycle.Route = (*route)(nil)
