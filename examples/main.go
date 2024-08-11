@@ -15,6 +15,7 @@ import (
 	"github.com/sethpollack/go-live-view/examples/comprehension"
 	"github.com/sethpollack/go-live-view/examples/counter"
 	"github.com/sethpollack/go-live-view/examples/index"
+	"github.com/sethpollack/go-live-view/examples/js"
 	"github.com/sethpollack/go-live-view/examples/nested"
 	"github.com/sethpollack/go-live-view/examples/scroll"
 	"github.com/sethpollack/go-live-view/examples/ssnav"
@@ -65,6 +66,7 @@ func setupRoutes() lifecycle.Router {
 			"/scroll",
 			"/stream",
 			"/uploads",
+			"/js",
 		},
 	})
 
@@ -76,6 +78,7 @@ func setupRoutes() lifecycle.Router {
 	root.Handle("/comprehension", &comprehension.Live{})
 	root.Handle("/stream", &stream.Live{})
 	root.Handle("/scroll", &scroll.Live{})
+	root.Handle("/js", &js.Live{})
 
 	nest := root.Group("/nested", &nested.Live{})
 	nest.Handle("/:id", &nested.ShowLive{})
