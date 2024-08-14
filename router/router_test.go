@@ -231,7 +231,7 @@ func TestRouter(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			rt := NewRouter(
-				WithLayout(testLayout),
+				testLayout,
 			)
 			createRoutes(rt, tc.routes)
 			route, err := rt.GetRoute(tc.path)

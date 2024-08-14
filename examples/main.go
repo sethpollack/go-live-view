@@ -51,7 +51,7 @@ const appJS = `
 
 func setupRoutes() lifecycle.Router {
 	rt := router.NewRouter(
-		router.WithLayout(comp.Layout),
+		comp.RootLayout,
 	)
 
 	root := rt.Group("/", &index.Live{

@@ -19,10 +19,9 @@ var _ lifecycle.Router = (*router)(nil)
 type routeOption func(*route)
 
 type route struct {
-	Path   string
-	View   lv.LiveView
-	Params params.Params
-	Layout func(string, rend.Node) rend.Node
+	path   string
+	view   lv.LiveView
+	params params.Params
 
 	parent *route
 	router *router
@@ -31,7 +30,7 @@ type route struct {
 type router struct {
 	root    *tree.Node[*route]
 	mounted map[*route]bool
-	options []routeOption
+	layout  func(string, rend.Node) rend.Node
 }
 
 type routeGroup struct {
@@ -46,29 +45,29 @@ func (r *route) GetView() lv.LiveView {
 }
 
 func (r *route) GetParams() params.Params {
-	return r.Params
+	return r.params
 }
 
 func (r *route) GetLayout() func(string, rend.Node) rend.Node {
-	return findParent(r).Layout
+	return r.router.layout
 }
 
-func NewRouter(opts ...routeOption) *router {
+func NewRouter(layout func(string, rend.Node) rend.Node) *router {
 	return &router{
 		root:    tree.New[*route](),
 		mounted: make(map[*route]bool),
-		options: opts,
+		layout:  layout,
 	}
 }
 
 func (r *router) Group(path string, view lv.LiveView, opts ...routeOption) *routeGroup {
 	route := &route{
-		Path:   path,
-		View:   view,
+		path:   path,
+		view:   view,
 		router: r,
 	}
 
-	for _, opt := range append(r.options, opts...) {
+	for _, opt := range opts {
 		opt(route)
 	}
 
@@ -77,19 +76,19 @@ func (r *router) Group(path string, view lv.LiveView, opts ...routeOption) *rout
 	return &routeGroup{
 		router:  r,
 		path:    path,
-		options: append(r.options, opts...),
+		options: opts,
 		parent:  route,
 	}
 }
 
 func (r *router) Handle(path string, view lv.LiveView, opts ...routeOption) *route {
 	route := &route{
-		Path:   path,
-		View:   view,
+		path:   path,
+		view:   view,
 		router: r,
 	}
 
-	for _, opt := range append(r.options, opts...) {
+	for _, opt := range opts {
 		opt(route)
 	}
 
@@ -109,12 +108,12 @@ func (r *router) GetRoute(path string) (lifecycle.Route, error) {
 		return nil, fmt.Errorf("no route found for path %s", path)
 	}
 
-	if route.Params == nil {
-		route.Params = make(map[string]any)
+	if route.params == nil {
+		route.params = make(map[string]any)
 	}
 
 	for key, value := range params {
-		route.Params[key] = value
+		route.params[key] = value
 	}
 
 	return route, nil
@@ -146,8 +145,8 @@ func (rg *routeGroup) Group(path string, view lv.LiveView, opts ...routeOption) 
 	fullPath := rg.combinePaths(rg.path, path)
 
 	route := &route{
-		Path:   fullPath,
-		View:   view,
+		path:   fullPath,
+		view:   view,
 		router: rg.router,
 		parent: rg.parent,
 	}
@@ -171,8 +170,8 @@ func (rg *routeGroup) Handle(path string, view lv.LiveView, opts ...routeOption)
 	fullPath := rg.combinePaths(rg.path, path)
 
 	route := &route{
-		Path:   fullPath,
-		View:   view,
+		path:   fullPath,
+		view:   view,
 		router: rg.router,
 		parent: rg.parent,
 	}
@@ -190,22 +189,16 @@ func (rg *routeGroup) combinePaths(base, new string) string {
 	return path.Join(base, new)
 }
 
-func WithLayout(layout func(string, rend.Node) rend.Node) routeOption {
-	return func(r *route) {
-		r.Layout = layout
-	}
-}
-
 func WithParams(params params.Params) routeOption {
 	return func(r *route) {
 		combined := make(map[string]any)
-		for k, v := range r.Params {
+		for k, v := range r.params {
 			combined[k] = v
 		}
 		for k, v := range params {
 			combined[k] = v
 		}
-		r.Params = combined
+		r.params = combined
 	}
 }
 

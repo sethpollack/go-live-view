@@ -25,7 +25,7 @@ func (v *wrapper) Mount(s lv.Socket, p params.Params) error {
 	return walk(v.route, func(route *route) error {
 		if !v.router.mounted[route] {
 			v.router.mounted[route] = true
-			return route.View.Mount(s, p)
+			return route.view.Mount(s, p)
 		}
 		return nil
 	})
@@ -33,7 +33,7 @@ func (v *wrapper) Mount(s lv.Socket, p params.Params) error {
 
 func (v *wrapper) Unmount() error {
 	for route := range v.router.mounted {
-		err := route.View.Unmount()
+		err := route.view.Unmount()
 		if err != nil {
 			return err
 		}
@@ -49,25 +49,25 @@ func (v *wrapper) Params(s lv.Socket, p params.Params) error {
 
 	return walk(v.route, func(route *route) error {
 		if !v.router.mounted[route] {
-			err := route.View.Mount(s, p)
+			err := route.view.Mount(s, p)
 			if err != nil {
 				return err
 			}
 			v.router.mounted[route] = true
 		}
-		return route.View.Params(s, p)
+		return route.view.Params(s, p)
 	})
 }
 
 func (v *wrapper) Event(s lv.Socket, e string, p params.Params) error {
 	return walk(v.route, func(route *route) error {
-		return route.View.Event(s, e, p)
+		return route.view.Event(s, e, p)
 	})
 }
 
 func (v *wrapper) Render(rend.Node) (node rend.Node, err error) {
 	err = walk(v.route, func(route *route) error {
-		node, err = route.View.Render(node)
+		node, err = route.view.Render(node)
 		return err
 	})
 
@@ -78,8 +78,8 @@ func (v *wrapper) Uploads() *uploads.Uploads {
 	var u *uploads.Uploads
 
 	walk(v.route, func(route *route) error {
-		if route.View != nil {
-			uploads := route.View.Uploads()
+		if route.view != nil {
+			uploads := route.view.Uploads()
 			if uploads != nil {
 				u = uploads
 			}
@@ -97,7 +97,7 @@ func (v *wrapper) unmountSiblings(route *route) {
 
 	for sibling := range v.router.mounted {
 		if sibling.parent == route.parent && sibling != route {
-			sibling.View.Unmount()
+			sibling.view.Unmount()
 			delete(v.router.mounted, sibling)
 		}
 	}

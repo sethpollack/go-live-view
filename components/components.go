@@ -22,7 +22,7 @@ func Unpkg(pkg, version string) rend.Node {
 	)
 }
 
-func Layout(session string, child rend.Node) rend.Node {
+func RootLayout(session string, child rend.Node) rend.Node {
 	return html.Html(
 		html.Head(
 			Unpkg("phoenix", "1.7.10"),
