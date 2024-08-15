@@ -11,12 +11,12 @@ import (
 type Route interface {
 	GetView() lv.LiveView
 	GetParams() params.Params
-	GetLayout() func(string, rend.Node) rend.Node
 }
 
 type Router interface {
 	GetRoute(string) (Route, error)
 	Routable(Route, Route) bool
+	GetLayout() func(string, rend.Node) rend.Node
 }
 
 type lifecycle struct {
@@ -160,7 +160,7 @@ func (l *lifecycle) StaticRender(sessionID string, url string) (string, error) {
 	}
 
 	return rend.RenderString(
-		route.GetLayout()(sessionID, node),
+		l.router.GetLayout()(sessionID, node),
 	), nil
 }
 

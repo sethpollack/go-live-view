@@ -104,7 +104,7 @@ func main() {
 		w.Write([]byte(""))
 	}))
 
-	mux.Handle("/", handler.NewHandler(ctx, setupRoutes, nil))
+	mux.Handle("/", handler.NewHandler(ctx, setupRoutes))
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:8080",

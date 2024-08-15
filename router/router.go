@@ -48,16 +48,16 @@ func (r *route) GetParams() params.Params {
 	return r.params
 }
 
-func (r *route) GetLayout() func(string, rend.Node) rend.Node {
-	return r.router.layout
-}
-
 func NewRouter(layout func(string, rend.Node) rend.Node) *router {
 	return &router{
 		root:    tree.New[*route](),
 		mounted: make(map[*route]bool),
 		layout:  layout,
 	}
+}
+
+func (r *router) GetLayout() func(string, rend.Node) rend.Node {
+	return r.layout
 }
 
 func (r *router) Group(path string, view lv.LiveView, opts ...routeOption) *routeGroup {

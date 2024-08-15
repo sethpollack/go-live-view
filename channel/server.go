@@ -10,16 +10,16 @@ import (
 type server struct {
 	mu sync.RWMutex
 
-	h        *hub
-	t        *transport
+	h        *Hub
+	c        *conn
 	matchers map[string]func() Channel
 	channels map[string]Channel
 }
 
-func NewServer(t Transport, h *hub) *server {
+func NewServer(c Conn, h *Hub) *server {
 	return &server{
 		h:        h,
-		t:        NewTransport(t),
+		c:        newConnection(c),
 		matchers: make(map[string]func() Channel),
 		channels: make(map[string]Channel),
 	}
@@ -56,7 +56,7 @@ func (s *server) PushBroadcast(msg *Message) error {
 }
 
 func (s *server) Push(msg *Message) error {
-	return s.t.WriteMessage(msg)
+	return s.c.WriteMessage(msg)
 }
 
 func (s *server) Listen(ctx context.Context) {
@@ -65,7 +65,7 @@ func (s *server) Listen(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		default:
-			msg, err := s.t.ReadMessage()
+			msg, err := s.c.ReadMessage()
 			if err != nil {
 				return
 			}

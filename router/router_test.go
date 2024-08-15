@@ -239,7 +239,6 @@ func TestRouter(t *testing.T) {
 				t.Fatalf("error getting route: %v", err)
 			}
 
-			route.GetLayout() // cant asert the layout here because it is a func
 			assert.Equal(t, tc.expectedParams, route.GetParams())
 
 			node, err := route.GetView().Render(nil)
