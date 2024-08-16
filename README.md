@@ -29,7 +29,7 @@ func (l *Live) Event(s lv.Socket, event string, _ params.Params) error {
 func (l *Live) Render(_ rend.Node) (rend.Node, error) {
 	return html.Div(
 		html.H1(
-			std.Text(&l.Count),
+			std.Text(&l.Count), // use pointer for dynamic values to optimize diffs to the client.
 		),
 		html.Button(
 			std.Text("inc"),
