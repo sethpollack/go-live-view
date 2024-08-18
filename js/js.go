@@ -135,14 +135,12 @@ type ShowArgs struct {
 }
 
 type showArgs struct {
-	Event      string      `json:"event,omitempty"`
 	Transition [3][]string `json:"transition,omitempty"`
 	*ShowArgs
 }
 
-func Show(event string, args *ShowArgs) operation {
+func Show(args *ShowArgs) operation {
 	a := &showArgs{
-		Event:    event,
 		ShowArgs: args,
 	}
 
