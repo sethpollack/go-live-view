@@ -15,13 +15,13 @@ import (
 
 type handlerOption func(*handler)
 
-func WithChannels(channels map[string]func() channel.Channel) handlerOption {
+func WithChannel(pattern string, f func() channel.Channel) handlerOption {
 	return func(h *handler) {
-		h.channels = channels
+		h.channels[pattern] = f
 	}
 }
 
-func WithTransports(transport channel.Transport) handlerOption {
+func WithTransport(transport channel.Transport) handlerOption {
 	return func(h *handler) {
 		h.transports = append(h.transports, transport)
 	}
@@ -40,6 +40,7 @@ func NewHandler(ctx context.Context, setupRoutes func() lifecycle.Router, opts .
 		ctx:         ctx,
 		setupRoutes: setupRoutes,
 		channelHub:  channel.NewHub(),
+		channels:    make(map[string]func() channel.Channel),
 		transports: []channel.Transport{
 			websocket.New("/live/websocket"),
 			longpoll.New("/live/longpoll"),
