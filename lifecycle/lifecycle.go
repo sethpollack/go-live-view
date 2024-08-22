@@ -77,6 +77,7 @@ func (l *lifecycle) Params(s lv.Socket, p params.Params) (*rend.Root, error) {
 		return nil, err
 	}
 
+	// TODO: is this needed? Layout is only available on the router, so there is no need to reload the layout.
 	if !l.router.Routable(l.route, route) {
 		err := s.Redirect(url)
 		if err != nil {
