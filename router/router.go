@@ -30,7 +30,7 @@ type route struct {
 type router struct {
 	root    *tree.Node[*route]
 	mounted map[*route]bool
-	layout  func(string, rend.Node) rend.Node
+	layout  func(...rend.Node) rend.Node
 }
 
 type routeGroup struct {
@@ -48,7 +48,7 @@ func (r *route) GetParams() params.Params {
 	return r.params
 }
 
-func NewRouter(layout func(string, rend.Node) rend.Node) *router {
+func NewRouter(layout func(...rend.Node) rend.Node) *router {
 	return &router{
 		root:    tree.New[*route](),
 		mounted: make(map[*route]bool),
@@ -56,7 +56,7 @@ func NewRouter(layout func(string, rend.Node) rend.Node) *router {
 	}
 }
 
-func (r *router) GetLayout() func(string, rend.Node) rend.Node {
+func (r *router) GetLayout() func(...rend.Node) rend.Node {
 	return r.layout
 }
 

@@ -22,7 +22,7 @@ func Unpkg(pkg, version string) rend.Node {
 	)
 }
 
-func RootLayout(session string, child rend.Node) rend.Node {
+func RootLayout(children ...rend.Node) rend.Node {
 	return html.Html(
 		html.Head(
 			Unpkg("phoenix", "1.7.10"),
@@ -32,14 +32,7 @@ func RootLayout(session string, child rend.Node) rend.Node {
 		),
 		html.Body(
 			html.Div(
-				html.Attrs(
-					html.DataAttr("phx-main"),
-					html.DataAttr("phx-session", session),
-					html.IdAttr(
-						fmt.Sprintf("phx-%s", session),
-					),
-				),
-				child,
+				children...,
 			),
 			html.Script(
 				html.Attrs(

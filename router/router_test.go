@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testLayout(name string, n rend.Node) rend.Node {
+func testLayout(_ ...rend.Node) rend.Node {
 	return std.Noop()
 }
 

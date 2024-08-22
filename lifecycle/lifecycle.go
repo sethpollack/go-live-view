@@ -3,6 +3,8 @@ package lifecycle
 import (
 	"fmt"
 
+	"github.com/rs/xid"
+	"github.com/sethpollack/go-live-view/html"
 	lv "github.com/sethpollack/go-live-view/liveview"
 	"github.com/sethpollack/go-live-view/params"
 	"github.com/sethpollack/go-live-view/rend"
@@ -16,7 +18,7 @@ type Route interface {
 type Router interface {
 	GetRoute(string) (Route, error)
 	Routable(Route, Route) bool
-	GetLayout() func(string, rend.Node) rend.Node
+	GetLayout() func(...rend.Node) rend.Node
 }
 
 type lifecycle struct {
@@ -160,7 +162,16 @@ func (l *lifecycle) StaticRender(sessionID string, url string) (string, error) {
 	}
 
 	return rend.RenderString(
-		l.router.GetLayout()(sessionID, node),
+		l.router.GetLayout()(
+			html.Attrs(
+				html.DataAttr("phx-main"),
+				html.DataAttr("phx-session"), // TODO: do we need to implement this? Not sure exactly how this works.
+				html.IdAttr(
+					fmt.Sprintf("phx-%s", xid.New().String()),
+				),
+			),
+			node,
+		),
 	), nil
 }
 
