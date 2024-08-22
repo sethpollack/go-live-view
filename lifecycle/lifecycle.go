@@ -83,7 +83,6 @@ func (l *lifecycle) Params(s lv.Socket, p params.Params) (*rend.Root, error) {
 			return nil, err
 		}
 		return nil, fmt.Errorf("cant patch to %s, redirecting", url)
-
 	}
 
 	l.route = route

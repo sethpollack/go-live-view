@@ -45,9 +45,19 @@ func (v *wrapper) Unmount() error {
 }
 
 func (v *wrapper) Params(s lv.Socket, p params.Params) error {
-	v.unmountSiblings(v.route)
+	// unmount everything except the current route
+	if v.route.parent == nil {
+		for current := range v.router.mounted {
+			if current != v.route {
+				current.view.Unmount()
+				delete(v.router.mounted, current)
+			}
+		}
+	}
 
-	return walk(v.route, func(route *route) error {
+	// mount everything that is in the current tree and track it.
+	shouldMount := make(map[*route]bool)
+	err := walk(v.route, func(route *route) error {
 		if !v.router.mounted[route] {
 			err := route.view.Mount(s, p)
 			if err != nil {
@@ -55,8 +65,19 @@ func (v *wrapper) Params(s lv.Socket, p params.Params) error {
 			}
 			v.router.mounted[route] = true
 		}
+		shouldMount[route] = true
 		return route.view.Params(s, p)
 	})
+
+	// unmount anything that is not in the current tree.
+	for mount := range v.router.mounted {
+		if !shouldMount[mount] {
+			mount.view.Unmount()
+			delete(v.router.mounted, mount)
+		}
+	}
+
+	return err
 }
 
 func (v *wrapper) Event(s lv.Socket, e string, p params.Params) error {
@@ -88,19 +109,6 @@ func (v *wrapper) Uploads() *uploads.Uploads {
 	})
 
 	return u
-}
-
-func (v *wrapper) unmountSiblings(route *route) {
-	if route.parent == nil {
-		return
-	}
-
-	for sibling := range v.router.mounted {
-		if sibling.parent == route.parent && sibling != route {
-			sibling.view.Unmount()
-			delete(v.router.mounted, sibling)
-		}
-	}
 }
 
 func walk(route *route, f func(*route) error) error {
