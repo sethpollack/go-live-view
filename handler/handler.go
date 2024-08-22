@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rs/xid"
 	"github.com/sethpollack/go-live-view/channel"
 	"github.com/sethpollack/go-live-view/channel/transport/longpoll"
 	"github.com/sethpollack/go-live-view/channel/transport/websocket"
@@ -65,7 +64,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, err := lifecycle.NewLifecycle(h.setupRoutes()).
-		StaticRender(xid.New().String(), r.URL.Path)
+		StaticRender(r.URL.Path)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -13,7 +13,7 @@ var _ channel.Channel = &lvChannel{}
 type LvLifecycle interface {
 	Join(Socket, params.Params) (*rend.Root, error)
 	Leave() error
-	StaticRender(string, string) (string, error)
+	StaticRender(string) (string, error)
 	Event(Socket, params.Params) (*rend.Root, error)
 	Params(Socket, params.Params) (*rend.Root, error)
 	AllowUpload(Socket, params.Params) (any, error)

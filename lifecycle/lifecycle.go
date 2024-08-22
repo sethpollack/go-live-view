@@ -139,7 +139,7 @@ func (l *lifecycle) Event(s lv.Socket, p params.Params) (*rend.Root, error) {
 	return diff, nil
 }
 
-func (l *lifecycle) StaticRender(sessionID string, url string) (string, error) {
+func (l *lifecycle) StaticRender(url string) (string, error) {
 	route, err := l.router.GetRoute(url)
 	if err != nil {
 		return "", err
