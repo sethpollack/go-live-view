@@ -20,7 +20,7 @@ type routeOption func(*route)
 
 type route struct {
 	path   string
-	view   lv.LiveView
+	view   lv.View
 	params params.Params
 
 	parent *route
@@ -40,7 +40,7 @@ type routeGroup struct {
 	parent  *route
 }
 
-func (r *route) GetView() lv.LiveView {
+func (r *route) GetView() lv.View {
 	return NewWrapper(r)
 }
 
@@ -60,7 +60,7 @@ func (r *router) GetLayout() func(...rend.Node) rend.Node {
 	return r.layout
 }
 
-func (r *router) Group(path string, view lv.LiveView, opts ...routeOption) *routeGroup {
+func (r *router) Group(path string, view lv.View, opts ...routeOption) *routeGroup {
 	route := &route{
 		path:   path,
 		view:   view,
@@ -81,7 +81,7 @@ func (r *router) Group(path string, view lv.LiveView, opts ...routeOption) *rout
 	}
 }
 
-func (r *router) Handle(path string, view lv.LiveView, opts ...routeOption) *route {
+func (r *router) Handle(path string, view lv.View, opts ...routeOption) *route {
 	route := &route{
 		path:   path,
 		view:   view,
@@ -141,7 +141,7 @@ func (r *router) findNode(path string) (*tree.Node[*route], map[string]any, erro
 	return node, params, nil
 }
 
-func (rg *routeGroup) Group(path string, view lv.LiveView, opts ...routeOption) *routeGroup {
+func (rg *routeGroup) Group(path string, view lv.View, opts ...routeOption) *routeGroup {
 	fullPath := rg.combinePaths(rg.path, path)
 
 	route := &route{
@@ -166,7 +166,7 @@ func (rg *routeGroup) Group(path string, view lv.LiveView, opts ...routeOption) 
 	}
 }
 
-func (rg *routeGroup) Handle(path string, view lv.LiveView, opts ...routeOption) *route {
+func (rg *routeGroup) Handle(path string, view lv.View, opts ...routeOption) *route {
 	fullPath := rg.combinePaths(rg.path, path)
 
 	route := &route{

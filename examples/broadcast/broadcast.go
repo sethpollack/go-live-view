@@ -11,7 +11,6 @@ import (
 )
 
 type Live struct {
-	lv.Base
 	Time time.Time
 }
 

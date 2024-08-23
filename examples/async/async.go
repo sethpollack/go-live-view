@@ -16,7 +16,6 @@ type User struct {
 }
 
 type Live struct {
-	lv.Base
 	User *async.Async[*User]
 }
 

@@ -14,7 +14,6 @@ import (
 
 type Live struct {
 	ref *ref.Ref
-	lv.Base
 
 	userStream *stream.StreamGetter
 }

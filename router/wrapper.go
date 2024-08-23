@@ -7,7 +7,14 @@ import (
 	"github.com/sethpollack/go-live-view/uploads"
 )
 
-var _ lv.LiveView = &wrapper{}
+var _ interface {
+	lv.View
+	lv.Mounter
+	lv.Unmounter
+	lv.Patcher
+	lv.EventHandler
+	lv.Uploader
+} = &wrapper{}
 
 type wrapper struct {
 	router *router
@@ -25,7 +32,7 @@ func (v *wrapper) Mount(s lv.Socket, p params.Params) error {
 	return walk(v.route, func(route *route) error {
 		if !v.router.mounted[route] {
 			v.router.mounted[route] = true
-			return route.view.Mount(s, p)
+			return lv.TryMount(route.view, s, p)
 		}
 		return nil
 	})
@@ -33,7 +40,7 @@ func (v *wrapper) Mount(s lv.Socket, p params.Params) error {
 
 func (v *wrapper) Unmount() error {
 	for route := range v.router.mounted {
-		err := route.view.Unmount()
+		err := lv.TryUnmount(route.view)
 		if err != nil {
 			return err
 		}
@@ -49,7 +56,7 @@ func (v *wrapper) Params(s lv.Socket, p params.Params) error {
 	if v.route.parent == nil {
 		for current := range v.router.mounted {
 			if current != v.route {
-				current.view.Unmount()
+				lv.TryUnmount(current.view)
 				delete(v.router.mounted, current)
 			}
 		}
@@ -59,20 +66,20 @@ func (v *wrapper) Params(s lv.Socket, p params.Params) error {
 	shouldMount := make(map[*route]bool)
 	err := walk(v.route, func(route *route) error {
 		if !v.router.mounted[route] {
-			err := route.view.Mount(s, p)
+			err := lv.TryMount(route.view, s, p)
 			if err != nil {
 				return err
 			}
 			v.router.mounted[route] = true
 		}
 		shouldMount[route] = true
-		return route.view.Params(s, p)
+		return lv.TryParams(route.view, s, p)
 	})
 
 	// unmount anything that is not in the current tree.
 	for mount := range v.router.mounted {
 		if !shouldMount[mount] {
-			mount.view.Unmount()
+			lv.TryUnmount(mount.view)
 			delete(v.router.mounted, mount)
 		}
 	}
@@ -82,7 +89,7 @@ func (v *wrapper) Params(s lv.Socket, p params.Params) error {
 
 func (v *wrapper) Event(s lv.Socket, e string, p params.Params) error {
 	return walk(v.route, func(route *route) error {
-		return route.view.Event(s, e, p)
+		return lv.TryEvent(route.view, s, e, p)
 	})
 }
 
@@ -100,7 +107,7 @@ func (v *wrapper) Uploads() *uploads.Uploads {
 
 	walk(v.route, func(route *route) error {
 		if route.view != nil {
-			uploads := route.view.Uploads()
+			uploads := lv.TryUploads(route.view)
 			if uploads != nil {
 				u = uploads
 			}

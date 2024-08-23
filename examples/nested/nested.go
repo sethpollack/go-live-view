@@ -9,7 +9,6 @@ import (
 )
 
 type Live struct {
-	lv.Base
 }
 
 func (u *Live) Render(child rend.Node) (rend.Node, error) {
@@ -38,7 +37,6 @@ func (u *Live) Render(child rend.Node) (rend.Node, error) {
 }
 
 type ShowLive struct {
-	lv.Base
 	params params.Params
 }
 
@@ -57,7 +55,6 @@ func (l *ShowLive) Render(_ rend.Node) (rend.Node, error) {
 }
 
 type EditLive struct {
-	lv.Base
 	params params.Params
 }
 

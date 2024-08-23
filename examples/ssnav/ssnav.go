@@ -9,7 +9,6 @@ import (
 )
 
 type Live struct {
-	lv.Base
 }
 
 func (u *Live) Event(s lv.Socket, e string, p params.Params) error {
@@ -43,7 +42,6 @@ func (u *Live) Render(child rend.Node) (rend.Node, error) {
 }
 
 type ShowLive struct {
-	lv.Base
 	id string
 }
 
@@ -61,7 +59,6 @@ func (l *ShowLive) Render(_ rend.Node) (rend.Node, error) {
 }
 
 type EditLive struct {
-	lv.Base
 	id string
 }
 

@@ -13,7 +13,6 @@ import (
 )
 
 type Live struct {
-	lv.Base
 	Options Options
 }
 

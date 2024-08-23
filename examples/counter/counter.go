@@ -9,7 +9,6 @@ import (
 )
 
 type Live struct {
-	lv.Base
 	Count int
 }
 

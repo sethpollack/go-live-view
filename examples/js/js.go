@@ -3,13 +3,11 @@ package js
 import (
 	"github.com/sethpollack/go-live-view/html"
 	"github.com/sethpollack/go-live-view/js"
-	lv "github.com/sethpollack/go-live-view/liveview"
 	"github.com/sethpollack/go-live-view/rend"
 	"github.com/sethpollack/go-live-view/std"
 )
 
 type Live struct {
-	*lv.Base
 }
 
 func hide_modal() string {

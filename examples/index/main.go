@@ -2,13 +2,11 @@ package index
 
 import (
 	"github.com/sethpollack/go-live-view/html"
-	lv "github.com/sethpollack/go-live-view/liveview"
 	"github.com/sethpollack/go-live-view/rend"
 	"github.com/sethpollack/go-live-view/std"
 )
 
 type Live struct {
-	lv.Base
 	Links []string
 }
 

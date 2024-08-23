@@ -18,7 +18,6 @@ func testLayout(_ ...rend.Node) rend.Node {
 
 type testLive struct {
 	name string
-	lv.Base
 }
 
 func (t *testLive) Render(n rend.Node) (rend.Node, error) {
@@ -30,14 +29,14 @@ func (t *testLive) Render(n rend.Node) (rend.Node, error) {
 
 type routes struct {
 	path     string
-	lv       lv.LiveView
+	lv       lv.View
 	children []routes
 	opts     []routeOption
 }
 
 type handler interface {
-	Handle(path string, view lv.LiveView, opts ...routeOption) *route
-	Group(path string, view lv.LiveView, opts ...routeOption) *routeGroup
+	Handle(path string, view lv.View, opts ...routeOption) *route
+	Group(path string, view lv.View, opts ...routeOption) *routeGroup
 }
 
 func TestRouter(t *testing.T) {

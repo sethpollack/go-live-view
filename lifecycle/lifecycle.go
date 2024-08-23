@@ -11,7 +11,7 @@ import (
 )
 
 type Route interface {
-	GetView() lv.LiveView
+	GetView() lv.View
 	GetParams() params.Params
 }
 
@@ -45,12 +45,12 @@ func (l *lifecycle) Join(s lv.Socket, p params.Params) (*rend.Root, error) {
 
 	view := route.GetView()
 
-	err = view.Mount(s, p)
+	err = lv.TryMount(view, s, p)
 	if err != nil {
 		return nil, err
 	}
 
-	err = view.Params(s, nil)
+	err = lv.TryParams(view, s, p)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,8 @@ func (l *lifecycle) Params(s lv.Socket, p params.Params) (*rend.Root, error) {
 
 	view := route.GetView()
 
-	if err := view.Params(s, p); err != nil {
+	err = lv.TryParams(view, s, p)
+	if err != nil {
 		return nil, err
 	}
 
@@ -117,7 +118,7 @@ func (l *lifecycle) Event(s lv.Socket, p params.Params) (*rend.Root, error) {
 
 	view := l.route.GetView()
 
-	if err := view.Event(s, event, p); err != nil {
+	if err := lv.TryEvent(view, s, event, p); err != nil {
 		return nil, err
 	}
 
@@ -147,12 +148,13 @@ func (l *lifecycle) StaticRender(url string) (string, error) {
 
 	view := route.GetView()
 
-	err = view.Mount(nil, nil)
+	err = lv.TryMount(view, nil, nil)
 	if err != nil {
 		return "", err
 	}
 
-	if err := view.Params(nil, nil); err != nil {
+	err = lv.TryParams(view, nil, nil)
+	if err != nil {
 		return "", err
 	}
 
@@ -188,7 +190,7 @@ func (l *lifecycle) DestroyCIDs(cids []int) error {
 }
 
 func (l *lifecycle) Leave() error {
-	return l.route.GetView().Unmount()
+	return lv.TryUnmount(l.route.GetView())
 }
 
 func (l *lifecycle) AllowUpload(s lv.Socket, p params.Params) (any, error) {
@@ -196,7 +198,7 @@ func (l *lifecycle) AllowUpload(s lv.Socket, p params.Params) (any, error) {
 
 	view := l.route.GetView()
 
-	u := view.Uploads()
+	u := lv.TryUploads(view)
 	if u == nil {
 		return nil, fmt.Errorf("uploads not found")
 	}
@@ -249,7 +251,7 @@ func (l *lifecycle) AllowUpload(s lv.Socket, p params.Params) (any, error) {
 func (l *lifecycle) Chunk(cRef, ref string, data []byte, close func() error) error {
 	view := l.route.GetView()
 
-	u := view.Uploads()
+	u := lv.TryUploads(view)
 	if u == nil {
 		return fmt.Errorf("uploads not found")
 	}
@@ -269,7 +271,7 @@ func (l *lifecycle) Progress(s lv.Socket, p params.Params) (*rend.Root, error) {
 
 	view := l.route.GetView()
 
-	u := view.Uploads()
+	u := lv.TryUploads(view)
 	if u == nil {
 		return nil, fmt.Errorf("uploads not found")
 	}

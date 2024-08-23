@@ -10,7 +10,6 @@ Basic Example:
 
 ```go
 type Live struct {
-	lv.Base
 	Count int
 }
 
