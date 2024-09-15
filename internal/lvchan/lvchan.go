@@ -6,27 +6,15 @@ import (
 	"github.com/sethpollack/go-live-view/channel"
 	lv "github.com/sethpollack/go-live-view/liveview"
 	"github.com/sethpollack/go-live-view/params"
-	"github.com/sethpollack/go-live-view/rend"
 )
 
 var _ channel.Channel = &lvChannel{}
 
-type LvLifecycle interface {
-	Join(lv.Socket, params.Params) (*rend.Root, error)
-	Leave() error
-	StaticRender(string) (string, error)
-	Event(lv.Socket, params.Params) (*rend.Root, error)
-	Params(lv.Socket, params.Params) (*rend.Root, error)
-	AllowUpload(lv.Socket, params.Params) (any, error)
-	Progress(lv.Socket, params.Params) (*rend.Root, error)
-	DestroyCIDs([]int) error
-}
-
 type lvChannel struct {
-	lc LvLifecycle
+	lc lifecycle
 }
 
-func New(lc LvLifecycle) func() channel.Channel {
+func New(lc lifecycle) func() channel.Channel {
 	return func() channel.Channel {
 		return &lvChannel{
 			lc: lc,
