@@ -27,12 +27,26 @@ func WithTransport(transport channel.Transport) handlerOption {
 	}
 }
 
+func WithTokenizer(tokenizer tokenizer) handlerOption {
+	return func(h *handler) {
+		h.tokenizer = tokenizer
+	}
+}
+
+func WithSessionGetter(getter sessionGetter) handlerOption {
+	return func(h *handler) {
+		h.sessionGetter = getter
+	}
+}
+
 type handler struct {
-	ctx         context.Context
-	setupRoutes func() lv.Router
-	channels    map[string]func() channel.Channel
-	channelHub  *channel.Hub
-	transports  []channel.Transport
+	ctx           context.Context
+	setupRoutes   func() lv.Router
+	channels      map[string]func() channel.Channel
+	channelHub    *channel.Hub
+	transports    []channel.Transport
+	tokenizer     tokenizer
+	sessionGetter sessionGetter
 }
 
 func NewHandler(ctx context.Context, setupRoutes func() lv.Router, opts ...handlerOption) *handler {
@@ -45,6 +59,8 @@ func NewHandler(ctx context.Context, setupRoutes func() lv.Router, opts ...handl
 			websocket.New("/live/websocket"),
 			longpoll.New("/live/longpoll"),
 		},
+		tokenizer:     &defaultTokenizer{},
+		sessionGetter: &defaultSessionGetter{},
 	}
 
 	go h.channelHub.Listen(h.ctx)
@@ -64,8 +80,9 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp, err := lv.NewLifecycle(h.setupRoutes()).
-		StaticRender(r.URL.Path)
+	resp, err := lv.NewLifecycle(
+		h.setupRoutes(), h.tokenizer, h.sessionGetter,
+	).StaticRender(w, r)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -82,7 +99,7 @@ func (h *handler) handle(t channel.Conn) {
 	defer h.channelHub.Remove(server)
 
 	rt := h.setupRoutes()
-	lc := lv.NewLifecycle(rt)
+	lc := lv.NewLifecycle(rt, h.tokenizer, h.sessionGetter)
 
 	server.Route("lv:*", lvchan.New(lc))
 	server.Route("lvu:*", lvuchan.New(lc))

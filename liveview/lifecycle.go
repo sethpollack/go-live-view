@@ -1,8 +1,10 @@
 package liveview
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/rs/xid"
 	"github.com/sethpollack/go-live-view/html"
@@ -11,14 +13,22 @@ import (
 )
 
 type lifecycle struct {
-	router Router
-	route  Route
-	tree   *rend.Root
+	router    Router
+	route     Route
+	tree      *rend.Root
+	tokenizer tokenizer
+	session   sessionGetter
 }
 
-func NewLifecycle(r Router) *lifecycle {
+func NewLifecycle(
+	r Router,
+	tokenizer tokenizer,
+	session sessionGetter,
+) *lifecycle {
 	return &lifecycle{
-		router: r,
+		router:    r,
+		tokenizer: tokenizer,
+		session:   session,
 	}
 }
 
@@ -51,9 +61,16 @@ func (l *lifecycle) Join(s Socket, p params.Params) (*rend.Root, error) {
 
 	view := route.GetView()
 
+	var data map[string]any
+	err = l.tokenizer.Decode(p.String("session"), &data)
+	if err != nil {
+		return nil, err
+	}
+
 	p = params.Merge(
 		p,
 		route.GetParams(),
+		data,
 	)
 
 	err = TryMount(view, s, p)
@@ -169,8 +186,8 @@ func (l *lifecycle) Event(s Socket, p params.Params) (*rend.Root, error) {
 	return diff, nil
 }
 
-func (l *lifecycle) StaticRender(url string) (string, error) {
-	route, err := l.router.GetRoute(url)
+func (l *lifecycle) StaticRender(w http.ResponseWriter, r *http.Request) (string, error) {
+	route, err := l.router.GetRoute(r.URL.Path)
 	if err != nil {
 		if errors.Is(err, NotFoundError) {
 			node, err := route.GetView().Render(nil)
@@ -207,7 +224,7 @@ func (l *lifecycle) StaticRender(url string) (string, error) {
 		l.router.GetLayout()(
 			html.Attrs(
 				html.DataAttr("phx-main"),
-				html.DataAttr("phx-session"),
+				html.DataAttr("phx-session", l.encodeSession(r)),
 				html.IdAttr(
 					fmt.Sprintf("phx-%s", xid.New().String()),
 				),
@@ -338,4 +355,43 @@ func (l *lifecycle) Progress(s Socket, p params.Params) (*rend.Root, error) {
 	l.tree = newTree
 
 	return diff, nil
+}
+
+func (l *lifecycle) decodeSession(p params.Params) map[string]any {
+	session := p.String("session")
+	if session == "" {
+		return nil
+	}
+
+	var data map[string]any
+	err := l.tokenizer.Decode(session, &data)
+	if err != nil {
+		return nil
+	}
+
+	return data
+}
+
+func (l *lifecycle) encodeSession(r *http.Request) string {
+	encode := map[string]any{}
+
+	if cookie, err := r.Cookie("__phx_flash__"); err == nil {
+		flash, err := base64.StdEncoding.DecodeString(cookie.Value)
+		if err != nil {
+			return ""
+		}
+		encode["flash"] = flash
+	}
+
+	session := l.session.Get(r)
+	for k, v := range session {
+		encode[k] = v
+	}
+
+	data, err := l.tokenizer.Encode(encode)
+	if err != nil {
+		return ""
+	}
+
+	return data
 }
