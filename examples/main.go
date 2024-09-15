@@ -22,7 +22,7 @@ import (
 	"github.com/sethpollack/go-live-view/examples/stream"
 	"github.com/sethpollack/go-live-view/examples/uploads"
 	"github.com/sethpollack/go-live-view/handler"
-	"github.com/sethpollack/go-live-view/lifecycle"
+	lv "github.com/sethpollack/go-live-view/liveview"
 	"github.com/sethpollack/go-live-view/router"
 )
 
@@ -46,10 +46,12 @@ const appJS = `
 
 	const lv = new LiveView.LiveSocket("/live", Phoenix.Socket, {hooks: Hooks});
 	lv.connect();
+
+	window.liveSocket = lv;
 })();
 `
 
-func setupRoutes() lifecycle.Router {
+func setupRoutes() lv.Router {
 	rt := router.NewRouter(
 		comp.RootLayout,
 	)

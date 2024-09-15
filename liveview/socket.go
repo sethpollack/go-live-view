@@ -21,7 +21,7 @@ type socket struct {
 	redirected bool
 }
 
-func newSocket(s channel.Socket) *socket {
+func NewSocket(s channel.Socket) *socket {
 	return &socket{
 		Socket: s,
 	}

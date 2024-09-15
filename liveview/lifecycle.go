@@ -1,17 +1,16 @@
-package lifecycle
+package liveview
 
 import (
 	"fmt"
 
 	"github.com/rs/xid"
 	"github.com/sethpollack/go-live-view/html"
-	lv "github.com/sethpollack/go-live-view/liveview"
 	"github.com/sethpollack/go-live-view/params"
 	"github.com/sethpollack/go-live-view/rend"
 )
 
 type Route interface {
-	GetView() lv.View
+	GetView() View
 	GetParams() params.Params
 }
 
@@ -33,7 +32,7 @@ func NewLifecycle(r Router) *lifecycle {
 	}
 }
 
-func (l *lifecycle) Join(s lv.Socket, p params.Params) (*rend.Root, error) {
+func (l *lifecycle) Join(s Socket, p params.Params) (*rend.Root, error) {
 	url := p.String("url", "redirect")
 
 	route, err := l.router.GetRoute(url)
@@ -45,12 +44,12 @@ func (l *lifecycle) Join(s lv.Socket, p params.Params) (*rend.Root, error) {
 
 	view := route.GetView()
 
-	err = lv.TryMount(view, s, p)
+	err = TryMount(view, s, p)
 	if err != nil {
 		return nil, err
 	}
 
-	err = lv.TryParams(view, s, p)
+	err = TryParams(view, s, p)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +68,7 @@ func (l *lifecycle) Join(s lv.Socket, p params.Params) (*rend.Root, error) {
 	return l.tree, nil
 }
 
-func (l *lifecycle) Params(s lv.Socket, p params.Params) (*rend.Root, error) {
+func (l *lifecycle) Params(s Socket, p params.Params) (*rend.Root, error) {
 	url := p.String("url", "redirect")
 
 	route, err := l.router.GetRoute(url)
@@ -90,7 +89,7 @@ func (l *lifecycle) Params(s lv.Socket, p params.Params) (*rend.Root, error) {
 
 	view := route.GetView()
 
-	err = lv.TryParams(view, s, p)
+	err = TryParams(view, s, p)
 	if err != nil {
 		return nil, err
 	}
@@ -113,12 +112,12 @@ func (l *lifecycle) Params(s lv.Socket, p params.Params) (*rend.Root, error) {
 	return diff, nil
 }
 
-func (l *lifecycle) Event(s lv.Socket, p params.Params) (*rend.Root, error) {
+func (l *lifecycle) Event(s Socket, p params.Params) (*rend.Root, error) {
 	event := p.String("event")
 
 	view := l.route.GetView()
 
-	if err := lv.TryEvent(view, s, event, p); err != nil {
+	if err := TryEvent(view, s, event, p); err != nil {
 		return nil, err
 	}
 
@@ -148,12 +147,12 @@ func (l *lifecycle) StaticRender(url string) (string, error) {
 
 	view := route.GetView()
 
-	err = lv.TryMount(view, nil, nil)
+	err = TryMount(view, nil, nil)
 	if err != nil {
 		return "", err
 	}
 
-	err = lv.TryParams(view, nil, nil)
+	err = TryParams(view, nil, nil)
 	if err != nil {
 		return "", err
 	}
@@ -190,15 +189,15 @@ func (l *lifecycle) DestroyCIDs(cids []int) error {
 }
 
 func (l *lifecycle) Leave() error {
-	return lv.TryUnmount(l.route.GetView())
+	return TryUnmount(l.route.GetView())
 }
 
-func (l *lifecycle) AllowUpload(s lv.Socket, p params.Params) (any, error) {
+func (l *lifecycle) AllowUpload(s Socket, p params.Params) (any, error) {
 	ref := p.String("ref")
 
 	view := l.route.GetView()
 
-	u := lv.TryUploads(view)
+	u := TryUploads(view)
 	if u == nil {
 		return nil, fmt.Errorf("uploads not found")
 	}
@@ -251,7 +250,7 @@ func (l *lifecycle) AllowUpload(s lv.Socket, p params.Params) (any, error) {
 func (l *lifecycle) Chunk(cRef, ref string, data []byte, close func() error) error {
 	view := l.route.GetView()
 
-	u := lv.TryUploads(view)
+	u := TryUploads(view)
 	if u == nil {
 		return fmt.Errorf("uploads not found")
 	}
@@ -264,14 +263,14 @@ func (l *lifecycle) Chunk(cRef, ref string, data []byte, close func() error) err
 	return cfg.OnChunk(ref, data, close)
 }
 
-func (l *lifecycle) Progress(s lv.Socket, p params.Params) (*rend.Root, error) {
+func (l *lifecycle) Progress(s Socket, p params.Params) (*rend.Root, error) {
 	ref := p.String("ref")
 	eRef := p.String("entry_ref")
 	progress := p.Float32("progress")
 
 	view := l.route.GetView()
 
-	u := lv.TryUploads(view)
+	u := TryUploads(view)
 	if u == nil {
 		return nil, fmt.Errorf("uploads not found")
 	}

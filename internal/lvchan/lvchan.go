@@ -1,9 +1,10 @@
-package liveview
+package lvchan
 
 import (
 	"fmt"
 
 	"github.com/sethpollack/go-live-view/channel"
+	lv "github.com/sethpollack/go-live-view/liveview"
 	"github.com/sethpollack/go-live-view/params"
 	"github.com/sethpollack/go-live-view/rend"
 )
@@ -11,13 +12,13 @@ import (
 var _ channel.Channel = &lvChannel{}
 
 type LvLifecycle interface {
-	Join(Socket, params.Params) (*rend.Root, error)
+	Join(lv.Socket, params.Params) (*rend.Root, error)
 	Leave() error
 	StaticRender(string) (string, error)
-	Event(Socket, params.Params) (*rend.Root, error)
-	Params(Socket, params.Params) (*rend.Root, error)
-	AllowUpload(Socket, params.Params) (any, error)
-	Progress(Socket, params.Params) (*rend.Root, error)
+	Event(lv.Socket, params.Params) (*rend.Root, error)
+	Params(lv.Socket, params.Params) (*rend.Root, error)
+	AllowUpload(lv.Socket, params.Params) (any, error)
+	Progress(lv.Socket, params.Params) (*rend.Root, error)
 	DestroyCIDs([]int) error
 }
 
@@ -25,7 +26,7 @@ type lvChannel struct {
 	lc LvLifecycle
 }
 
-func NewLVChannel(lc LvLifecycle) func() channel.Channel {
+func New(lc LvLifecycle) func() channel.Channel {
 	return func() channel.Channel {
 		return &lvChannel{
 			lc: lc,
@@ -34,7 +35,7 @@ func NewLVChannel(lc LvLifecycle) func() channel.Channel {
 }
 
 func (l *lvChannel) Join(s channel.Socket, p any) error {
-	rend, err := l.lc.Join(newSocket(s), params.FromAny(p))
+	rend, err := l.lc.Join(lv.NewSocket(s), params.FromAny(p))
 	if err != nil {
 		return err
 	}
@@ -84,7 +85,7 @@ func (l *lvChannel) Broadcast(s channel.Socket, event string, p any) error {
 }
 
 func (l *lvChannel) handleEvent(s channel.Socket, p params.Params) error {
-	diff, err := l.lc.Event(newSocket(s), p)
+	diff, err := l.lc.Event(lv.NewSocket(s), p)
 	if err != nil {
 		return err
 	}
@@ -103,7 +104,7 @@ func (l *lvChannel) handleDestroyCidsEvent(s channel.Socket, p params.Params) er
 }
 
 func (l *lvChannel) handleLivePatchEvent(s channel.Socket, p params.Params) error {
-	diff, err := l.lc.Params(newSocket(s), p)
+	diff, err := l.lc.Params(lv.NewSocket(s), p)
 	if err != nil {
 		return err
 	}
@@ -112,7 +113,7 @@ func (l *lvChannel) handleLivePatchEvent(s channel.Socket, p params.Params) erro
 }
 
 func (l *lvChannel) handleAllowUploadEvent(s channel.Socket, p params.Params) error {
-	payload, err := l.lc.AllowUpload(newSocket(s), p)
+	payload, err := l.lc.AllowUpload(lv.NewSocket(s), p)
 	if err != nil {
 		return err
 	}
@@ -121,7 +122,7 @@ func (l *lvChannel) handleAllowUploadEvent(s channel.Socket, p params.Params) er
 }
 
 func (l *lvChannel) handleProgressEvent(s channel.Socket, p params.Params) error {
-	payload, err := l.lc.Progress(newSocket(s), p)
+	payload, err := l.lc.Progress(lv.NewSocket(s), p)
 	if err != nil {
 		return err
 	}

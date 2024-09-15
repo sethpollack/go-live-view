@@ -21,7 +21,7 @@ type wrapper struct {
 	route  *route
 }
 
-func NewWrapper(r *route) *wrapper {
+func newWrapper(r *route) *wrapper {
 	return &wrapper{
 		route:  r,
 		router: r.router,

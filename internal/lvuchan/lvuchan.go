@@ -1,4 +1,4 @@
-package liveview
+package lvuchan
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ type lvuChannel struct {
 	ref       string
 }
 
-func NewLVUChannel(lc lvuLifecycle) func() channel.Channel {
+func New(lc lvuLifecycle) func() channel.Channel {
 	return func() channel.Channel {
 		return &lvuChannel{
 			lc: lc,

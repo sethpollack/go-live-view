@@ -8,7 +8,8 @@ import (
 	"github.com/sethpollack/go-live-view/channel"
 	"github.com/sethpollack/go-live-view/channel/transport/longpoll"
 	"github.com/sethpollack/go-live-view/channel/transport/websocket"
-	"github.com/sethpollack/go-live-view/lifecycle"
+	"github.com/sethpollack/go-live-view/internal/lvchan"
+	"github.com/sethpollack/go-live-view/internal/lvuchan"
 	lv "github.com/sethpollack/go-live-view/liveview"
 )
 
@@ -28,13 +29,13 @@ func WithTransport(transport channel.Transport) handlerOption {
 
 type handler struct {
 	ctx         context.Context
-	setupRoutes func() lifecycle.Router
+	setupRoutes func() lv.Router
 	channels    map[string]func() channel.Channel
 	channelHub  *channel.Hub
 	transports  []channel.Transport
 }
 
-func NewHandler(ctx context.Context, setupRoutes func() lifecycle.Router, opts ...handlerOption) *handler {
+func NewHandler(ctx context.Context, setupRoutes func() lv.Router, opts ...handlerOption) *handler {
 	h := &handler{
 		ctx:         ctx,
 		setupRoutes: setupRoutes,
@@ -63,7 +64,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp, err := lifecycle.NewLifecycle(h.setupRoutes()).
+	resp, err := lv.NewLifecycle(h.setupRoutes()).
 		StaticRender(r.URL.Path)
 
 	if err != nil {
@@ -81,10 +82,10 @@ func (h *handler) handle(t channel.Conn) {
 	defer h.channelHub.Remove(server)
 
 	rt := h.setupRoutes()
-	lc := lifecycle.NewLifecycle(rt)
+	lc := lv.NewLifecycle(rt)
 
-	server.Route("lv:*", lv.NewLVChannel(lc))
-	server.Route("lvu:*", lv.NewLVUChannel(lc))
+	server.Route("lv:*", lvchan.New(lc))
+	server.Route("lvu:*", lvuchan.New(lc))
 
 	for topic, factory := range h.channels {
 		server.Route(topic, factory)

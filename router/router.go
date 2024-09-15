@@ -7,14 +7,13 @@ import (
 	"strings"
 
 	"github.com/sethpollack/go-live-view/internal/tree"
-	"github.com/sethpollack/go-live-view/lifecycle"
 	lv "github.com/sethpollack/go-live-view/liveview"
 	"github.com/sethpollack/go-live-view/params"
 	"github.com/sethpollack/go-live-view/rend"
 )
 
-var _ lifecycle.Route = (*route)(nil)
-var _ lifecycle.Router = (*router)(nil)
+var _ lv.Route = (*route)(nil)
+var _ lv.Router = (*router)(nil)
 
 type routeOption func(*route)
 
@@ -41,7 +40,7 @@ type routeGroup struct {
 }
 
 func (r *route) GetView() lv.View {
-	return NewWrapper(r)
+	return newWrapper(r)
 }
 
 func (r *route) GetParams() params.Params {
@@ -96,7 +95,7 @@ func (r *router) Handle(path string, view lv.View, opts ...routeOption) *route {
 	return route
 }
 
-func (r *router) GetRoute(path string) (lifecycle.Route, error) {
+func (r *router) GetRoute(path string) (lv.Route, error) {
 	node, params, err := r.findNode(path)
 	if err != nil {
 		return nil, err
@@ -119,7 +118,7 @@ func (r *router) GetRoute(path string) (lifecycle.Route, error) {
 	return route, nil
 }
 
-func (r *router) Routable(from lifecycle.Route, to lifecycle.Route) bool {
+func (r *router) Routable(from lv.Route, to lv.Route) bool {
 	return findParent(from.(*route)) == findParent(to.(*route))
 }
 
