@@ -18,9 +18,10 @@ var _ lv.Router = (*router)(nil)
 type routeOption func(*route)
 
 type route struct {
-	path   string
-	view   lv.View
-	params params.Params
+	path    string
+	view    lv.View
+	params  params.Params
+	session string
 
 	parent *route
 	router *router
@@ -119,7 +120,11 @@ func (r *router) GetRoute(path string) (lv.Route, error) {
 }
 
 func (r *router) Routable(from lv.Route, to lv.Route) bool {
-	return findParent(from.(*route)) == findParent(to.(*route))
+	return r.sameSession(from, to)
+}
+
+func (r *router) sameSession(from lv.Route, to lv.Route) bool {
+	return findSession(from.(*route)) == findSession(to.(*route))
 }
 
 func (r *router) findNode(path string) (*tree.Node[*route], map[string]any, error) {
@@ -201,14 +206,20 @@ func WithParams(params params.Params) routeOption {
 	}
 }
 
-func findParent(route *route) *route {
+func WithSession(session string) routeOption {
+	return func(r *route) {
+		r.session = session
+	}
+}
+
+func findSession(route *route) string {
 	if route == nil {
-		return nil
+		return ""
 	}
 
-	for route != nil && route.parent != nil {
-		route = route.parent
+	if route.session != "" {
+		return route.session
 	}
 
-	return route
+	return findSession(route.parent)
 }
