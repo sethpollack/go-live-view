@@ -1,6 +1,7 @@
 package params
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -34,6 +35,18 @@ func (p Params) Map(key ...string) Params {
 		switch v := n.(type) {
 		case map[string]any:
 			return Params(v)
+		case map[string]string:
+			params := Params{}
+			for k, v := range v {
+				params[k] = v
+			}
+			return params
+		case map[any]any:
+			params := Params{}
+			for k, v := range v {
+				params[fmt.Sprintf("%v", k)] = v
+			}
+			return params
 		default:
 			return Params{}
 		}
