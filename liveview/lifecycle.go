@@ -40,6 +40,14 @@ func (l *lifecycle) Join(s Socket, p params.Params) (*rend.Root, error) {
 		return nil, err
 	}
 
+	if l.route != nil && !l.router.Routable(l.route, route) {
+		err := s.Redirect(url)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("cant patch to %s, redirecting", url)
+	}
+
 	l.route = route
 
 	view := route.GetView()
@@ -161,7 +169,7 @@ func (l *lifecycle) StaticRender(url string) (string, error) {
 
 	view := route.GetView()
 
-	p := l.route.GetParams()
+	p := route.GetParams()
 
 	err = TryMount(view, nil, p)
 	if err != nil {
