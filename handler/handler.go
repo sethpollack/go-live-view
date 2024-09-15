@@ -15,30 +15,6 @@ import (
 
 type handlerOption func(*handler)
 
-func WithChannel(pattern string, f func() channel.Channel) handlerOption {
-	return func(h *handler) {
-		h.channels[pattern] = f
-	}
-}
-
-func WithTransport(transport channel.Transport) handlerOption {
-	return func(h *handler) {
-		h.transports = append(h.transports, transport)
-	}
-}
-
-func WithTokenizer(tokenizer tokenizer) handlerOption {
-	return func(h *handler) {
-		h.tokenizer = tokenizer
-	}
-}
-
-func WithSessionGetter(getter sessionGetter) handlerOption {
-	return func(h *handler) {
-		h.sessionGetter = getter
-	}
-}
-
 type handler struct {
 	ctx           context.Context
 	setupRoutes   func() lv.Router
@@ -70,6 +46,30 @@ func NewHandler(ctx context.Context, setupRoutes func() lv.Router, opts ...handl
 	}
 
 	return h
+}
+
+func WithChannel(pattern string, f func() channel.Channel) handlerOption {
+	return func(h *handler) {
+		h.channels[pattern] = f
+	}
+}
+
+func WithTransport(transport channel.Transport) handlerOption {
+	return func(h *handler) {
+		h.transports = append(h.transports, transport)
+	}
+}
+
+func WithTokenizer(tokenizer tokenizer) handlerOption {
+	return func(h *handler) {
+		h.tokenizer = tokenizer
+	}
+}
+
+func WithSessionGetter(getter sessionGetter) handlerOption {
+	return func(h *handler) {
+		h.sessionGetter = getter
+	}
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

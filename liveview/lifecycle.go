@@ -2,6 +2,7 @@ package liveview
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,6 +12,30 @@ import (
 	"github.com/sethpollack/go-live-view/params"
 	"github.com/sethpollack/go-live-view/rend"
 )
+
+const flashKey = "__phoenix_flash__"
+
+var NotFoundError = errors.New("route not found")
+
+type Route interface {
+	GetView() View
+	GetParams() params.Params
+}
+
+type Router interface {
+	GetRoute(string) (Route, error)
+	Routable(Route, Route) bool
+	GetLayout() func(...rend.Node) rend.Node
+}
+
+type sessionGetter interface {
+	Get(*http.Request) map[string]any
+}
+
+type tokenizer interface {
+	Encode(any) (string, error)
+	Decode(string, any) error
+}
 
 type lifecycle struct {
 	router    Router
@@ -61,16 +86,12 @@ func (l *lifecycle) Join(s Socket, p params.Params) (*rend.Root, error) {
 
 	view := route.GetView()
 
-	var data map[string]any
-	err = l.tokenizer.Decode(p.String("session"), &data)
-	if err != nil {
-		return nil, err
-	}
+	session := l.decodeSession(p)
 
 	p = params.Merge(
 		p,
 		route.GetParams(),
-		data,
+		session,
 	)
 
 	err = TryMount(view, s, p)
@@ -358,28 +379,29 @@ func (l *lifecycle) Progress(s Socket, p params.Params) (*rend.Root, error) {
 }
 
 func (l *lifecycle) decodeSession(p params.Params) map[string]any {
+	decode := map[string]any{}
+
 	session := p.String("session")
 	if session == "" {
-		return nil
+		return decode
 	}
+	delete(p, "session")
 
-	var data map[string]any
-	err := l.tokenizer.Decode(session, &data)
+	err := l.tokenizer.Decode(session, &decode)
 	if err != nil {
 		return nil
 	}
 
-	return data
+	decodeFlash(decode)
+
+	return decode
 }
 
 func (l *lifecycle) encodeSession(r *http.Request) string {
 	encode := map[string]any{}
 
-	if cookie, err := r.Cookie("__phx_flash__"); err == nil {
-		flash, err := base64.StdEncoding.DecodeString(cookie.Value)
-		if err != nil {
-			return ""
-		}
+	if cookie, err := r.Cookie(flashKey); err == nil {
+		flash, _ := base64.StdEncoding.DecodeString(cookie.Value)
 		encode["flash"] = flash
 	}
 
@@ -394,4 +416,25 @@ func (l *lifecycle) encodeSession(r *http.Request) string {
 	}
 
 	return data
+}
+
+func decodeFlash(m map[string]any) {
+	flash, ok := m["flash"]
+	if !ok {
+		return
+	}
+	delete(m, "flash")
+
+	decoded, err := base64.StdEncoding.DecodeString(flash.(string))
+	if err != nil {
+		return
+	}
+
+	var flashMap map[string]any
+	err = json.Unmarshal(decoded, &flashMap)
+	if err != nil {
+		return
+	}
+
+	m["flash"] = flashMap
 }

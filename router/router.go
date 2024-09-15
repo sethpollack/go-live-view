@@ -14,8 +14,15 @@ import (
 var _ lv.Route = (*route)(nil)
 var _ lv.Router = (*router)(nil)
 
+type routerOption func(*router)
 type routeOption func(*route)
 
+type router struct {
+	root     *tree.Node[*route]
+	mounted  map[*route]bool
+	layout   func(...rend.Node) rend.Node
+	notFound *route
+}
 type route struct {
 	path    string
 	view    lv.View
@@ -26,28 +33,11 @@ type route struct {
 	router *router
 }
 
-type routerOption func(*router)
-
-type router struct {
-	root     *tree.Node[*route]
-	mounted  map[*route]bool
-	layout   func(...rend.Node) rend.Node
-	notFound *route
-}
-
 type routeGroup struct {
 	router  *router
 	path    string
 	options []routeOption
 	parent  *route
-}
-
-func (r *route) GetView() lv.View {
-	return newWrapper(r)
-}
-
-func (r *route) GetParams() params.Params {
-	return r.params
 }
 
 func NewRouter(
@@ -69,6 +59,33 @@ func NewRouter(
 	}
 
 	return r
+}
+
+func WithNotFound(view lv.View) routerOption {
+	return func(r *router) {
+		r.notFound = &route{
+			view: view,
+		}
+	}
+}
+
+func WithParams(params params.Params) routeOption {
+	return func(r *route) {
+		combined := make(map[string]any)
+		for k, v := range r.params {
+			combined[k] = v
+		}
+		for k, v := range params {
+			combined[k] = v
+		}
+		r.params = combined
+	}
+}
+
+func WithSession(session string) routeOption {
+	return func(r *route) {
+		r.session = session
+	}
 }
 
 func (r *router) GetLayout() func(...rend.Node) rend.Node {
@@ -138,14 +155,6 @@ func (r *router) Routable(from lv.Route, to lv.Route) bool {
 	return r.sameSession(from, to)
 }
 
-func WithNotFound(view lv.View) routerOption {
-	return func(r *router) {
-		r.notFound = &route{
-			view: view,
-		}
-	}
-}
-
 func (r *router) sameSession(from lv.Route, to lv.Route) bool {
 	return findSession(from.(*route)) == findSession(to.(*route))
 }
@@ -166,6 +175,14 @@ func (r *router) findNode(path string) (*tree.Node[*route], map[string]any, erro
 	}
 
 	return node, params, nil
+}
+
+func (r *route) GetView() lv.View {
+	return newWrapper(r)
+}
+
+func (r *route) GetParams() params.Params {
+	return r.params
 }
 
 func (rg *routeGroup) Group(path string, view lv.View, opts ...routeOption) *routeGroup {
@@ -214,25 +231,6 @@ func (rg *routeGroup) Handle(path string, view lv.View, opts ...routeOption) *ro
 func (rg *routeGroup) combinePaths(base, new string) string {
 	new = strings.TrimPrefix(new, "/")
 	return path.Join(base, new)
-}
-
-func WithParams(params params.Params) routeOption {
-	return func(r *route) {
-		combined := make(map[string]any)
-		for k, v := range r.params {
-			combined[k] = v
-		}
-		for k, v := range params {
-			combined[k] = v
-		}
-		r.params = combined
-	}
-}
-
-func WithSession(session string) routeOption {
-	return func(r *route) {
-		r.session = session
-	}
 }
 
 func findSession(route *route) string {

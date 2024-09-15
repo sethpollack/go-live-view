@@ -1,20 +1,24 @@
 package liveview
 
 import (
+	"encoding/base64"
+	"encoding/json"
+
 	"github.com/sethpollack/go-live-view/channel"
 )
+
+var _ Socket = (*socket)(nil)
+
+type redirectOption func(map[string]any)
 
 type Socket interface {
 	channel.Socket
 	PushEvent(string, any) error
-	PushPatch(string, bool) error
-	PushNavigate(string, bool) error
-	Redirect(string) error
+	PushPatch(string, ...redirectOption) error
+	PushNavigate(string, ...redirectOption) error
+	Redirect(string, ...redirectOption) error
 	Redirected() bool
-	// PutFlash(string, string) error
 }
-
-var _ Socket = (*socket)(nil)
 
 type socket struct {
 	channel.Socket
@@ -24,6 +28,20 @@ type socket struct {
 func NewSocket(s channel.Socket) *socket {
 	return &socket{
 		Socket: s,
+	}
+}
+
+func WithFlash(key, value string) redirectOption {
+	return func(m map[string]any) {
+		m["flash"] = map[string]string{
+			key: value,
+		}
+	}
+}
+
+func WithReplace() redirectOption {
+	return func(m map[string]any) {
+		m["kind"] = "replace"
 	}
 }
 
@@ -59,18 +77,26 @@ func (s *socket) PushEvent(event string, payload any) error {
 }
 
 // PushPatch sends a live_patch to the client.
-func (s *socket) PushPatch(url string, replace bool) error {
-	err := s.Push("live_patch", map[string]any{
-		"kind": navType(replace),
+func (s *socket) PushPatch(url string, opts ...redirectOption) error {
+	payload := map[string]any{
 		"to":   url,
-	})
+		"kind": "push",
+	}
+
+	for _, opt := range opts {
+		opt(payload)
+	}
+
+	err := s.Push("live_patch", payload)
 	if err != nil {
 		return err
 	}
 
 	// client does not return an event, so we push it to ourselves
 	err = s.Socket.PushSelf("live_patch", map[string]any{
-		"url": url,
+		"kind":  payload["kind"],
+		"url":   payload["to"],
+		"flash": payload["flash"],
 	})
 	if err != nil {
 		return err
@@ -82,11 +108,17 @@ func (s *socket) PushPatch(url string, replace bool) error {
 }
 
 // PushNavigate sends a live_redirect to the client.
-func (s socket) PushNavigate(url string, replace bool) error {
-	err := s.Push("live_redirect", map[string]any{
-		"kind": navType(replace),
+func (s socket) PushNavigate(url string, opts ...redirectOption) error {
+	payload := map[string]any{
 		"to":   url,
-	})
+		"kind": "push",
+	}
+
+	for _, opt := range opts {
+		opt(payload)
+	}
+
+	err := s.Push("live_redirect", payload)
 	if err != nil {
 		return err
 	}
@@ -97,10 +129,18 @@ func (s socket) PushNavigate(url string, replace bool) error {
 }
 
 // Redirect sends a redirect to the client.
-func (s socket) Redirect(url string) error {
-	err := s.Push("redirect", map[string]any{
+func (s socket) Redirect(url string, opts ...redirectOption) error {
+	payload := map[string]any{
 		"to": url,
-	})
+	}
+
+	for _, opt := range opts {
+		opt(payload)
+	}
+
+	encodeFlash(payload)
+
+	err := s.Push("redirect", payload)
 	if err != nil {
 		return err
 	}
@@ -115,9 +155,17 @@ func (s *socket) Redirected() bool {
 	return s.redirected
 }
 
-func navType(replace bool) string {
-	if replace {
-		return "replace"
+func encodeFlash(m map[string]any) {
+	flash, ok := m["flash"]
+	if !ok {
+		return
 	}
-	return "push"
+	delete(m, "flash")
+
+	js, err := json.Marshal(flash)
+	if err != nil {
+		return
+	}
+
+	m["flash"] = base64.StdEncoding.EncodeToString(js)
 }

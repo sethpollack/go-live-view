@@ -14,6 +14,7 @@ import (
 	"github.com/sethpollack/go-live-view/examples/charts"
 	"github.com/sethpollack/go-live-view/examples/comprehension"
 	"github.com/sethpollack/go-live-view/examples/counter"
+	"github.com/sethpollack/go-live-view/examples/flash"
 	"github.com/sethpollack/go-live-view/examples/index"
 	"github.com/sethpollack/go-live-view/examples/js"
 	"github.com/sethpollack/go-live-view/examples/nested"
@@ -69,6 +70,7 @@ func setupRoutes() lv.Router {
 			"/stream",
 			"/uploads",
 			"/js",
+			"/flash",
 		},
 	})
 
@@ -81,6 +83,7 @@ func setupRoutes() lv.Router {
 	root.Handle("/stream", &stream.Live{})
 	root.Handle("/scroll", &scroll.Live{})
 	root.Handle("/js", &js.Live{})
+	root.Handle("/flash", &flash.Live{})
 
 	nest := root.Group("/nested", &nested.Live{})
 	nest.Handle("/:id", &nested.ShowLive{})

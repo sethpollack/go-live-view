@@ -13,7 +13,7 @@ type Live struct {
 
 func (u *Live) Event(s lv.Socket, e string, p params.Params) error {
 	if e == "navigate" {
-		return s.PushPatch(p.Map("value").String("href"), false)
+		return s.PushPatch(p.Map("value").String("href"))
 	}
 	return nil
 }
