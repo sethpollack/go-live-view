@@ -1,6 +1,7 @@
 package liveview
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/rs/xid"
@@ -8,6 +9,8 @@ import (
 	"github.com/sethpollack/go-live-view/params"
 	"github.com/sethpollack/go-live-view/rend"
 )
+
+var NotFoundError = errors.New("route not found")
 
 type Route interface {
 	GetView() View
@@ -37,6 +40,15 @@ func (l *lifecycle) Join(s Socket, p params.Params) (*rend.Root, error) {
 
 	route, err := l.router.GetRoute(url)
 	if err != nil {
+		if errors.Is(err, NotFoundError) {
+			node, err := route.GetView().Render(nil)
+			if err != nil {
+				return nil, err
+			}
+
+			return rend.RenderTree(node), nil
+		}
+
 		return nil, err
 	}
 
@@ -86,6 +98,15 @@ func (l *lifecycle) Params(s Socket, p params.Params) (*rend.Root, error) {
 
 	route, err := l.router.GetRoute(url)
 	if err != nil {
+		if errors.Is(err, NotFoundError) {
+			node, err := route.GetView().Render(nil)
+			if err != nil {
+				return nil, err
+			}
+
+			return rend.RenderTree(node), nil
+		}
+
 		return nil, err
 	}
 
@@ -164,6 +185,15 @@ func (l *lifecycle) Event(s Socket, p params.Params) (*rend.Root, error) {
 func (l *lifecycle) StaticRender(url string) (string, error) {
 	route, err := l.router.GetRoute(url)
 	if err != nil {
+		if errors.Is(err, NotFoundError) {
+			node, err := route.GetView().Render(nil)
+			if err != nil {
+				return "", err
+			}
+
+			return rend.RenderString(node), nil
+		}
+
 		return "", err
 	}
 

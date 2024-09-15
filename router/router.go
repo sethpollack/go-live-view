@@ -1,7 +1,6 @@
 package router
 
 import (
-	"fmt"
 	"net/url"
 	"path"
 	"strings"
@@ -27,10 +26,13 @@ type route struct {
 	router *router
 }
 
+type routerOption func(*router)
+
 type router struct {
-	root    *tree.Node[*route]
-	mounted map[*route]bool
-	layout  func(...rend.Node) rend.Node
+	root     *tree.Node[*route]
+	mounted  map[*route]bool
+	layout   func(...rend.Node) rend.Node
+	notFound *route
 }
 
 type routeGroup struct {
@@ -48,12 +50,25 @@ func (r *route) GetParams() params.Params {
 	return r.params
 }
 
-func NewRouter(layout func(...rend.Node) rend.Node) *router {
-	return &router{
+func NewRouter(
+	layout func(...rend.Node) rend.Node,
+	opts ...routerOption,
+) *router {
+
+	r := &router{
 		root:    tree.New[*route](),
 		mounted: make(map[*route]bool),
 		layout:  layout,
+		notFound: &route{
+			view: &notFound{},
+		},
 	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
 }
 
 func (r *router) GetLayout() func(...rend.Node) rend.Node {
@@ -105,7 +120,7 @@ func (r *router) GetRoute(path string) (lv.Route, error) {
 	route := node.GetRoute()
 
 	if route == nil {
-		return nil, fmt.Errorf("no route found for path %s", path)
+		return r.notFound, lv.NotFoundError
 	}
 
 	if route.params == nil {
@@ -121,6 +136,14 @@ func (r *router) GetRoute(path string) (lv.Route, error) {
 
 func (r *router) Routable(from lv.Route, to lv.Route) bool {
 	return r.sameSession(from, to)
+}
+
+func WithNotFound(view lv.View) routerOption {
+	return func(r *router) {
+		r.notFound = &route{
+			view: view,
+		}
+	}
 }
 
 func (r *router) sameSession(from lv.Route, to lv.Route) bool {
