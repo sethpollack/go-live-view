@@ -14,6 +14,16 @@ func FromAny(a any) Params {
 	return m
 }
 
+func Merge(pms ...Params) Params {
+	result := Params{}
+	for _, pm := range pms {
+		for k, v := range pm {
+			result[k] = v
+		}
+	}
+	return result
+}
+
 func (p Params) Map(key ...string) Params {
 	for _, k := range key {
 		n, ok := p[k]

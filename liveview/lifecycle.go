@@ -44,6 +44,11 @@ func (l *lifecycle) Join(s Socket, p params.Params) (*rend.Root, error) {
 
 	view := route.GetView()
 
+	p = params.Merge(
+		p,
+		route.GetParams(),
+	)
+
 	err = TryMount(view, s, p)
 	if err != nil {
 		return nil, err
@@ -76,7 +81,6 @@ func (l *lifecycle) Params(s Socket, p params.Params) (*rend.Root, error) {
 		return nil, err
 	}
 
-	// TODO: is this needed? Layout is only available on the router, so there is no need to reload the layout.
 	if !l.router.Routable(l.route, route) {
 		err := s.Redirect(url)
 		if err != nil {
@@ -88,6 +92,11 @@ func (l *lifecycle) Params(s Socket, p params.Params) (*rend.Root, error) {
 	l.route = route
 
 	view := route.GetView()
+
+	p = params.Merge(
+		p,
+		route.GetParams(),
+	)
 
 	err = TryParams(view, s, p)
 	if err != nil {
@@ -116,6 +125,11 @@ func (l *lifecycle) Event(s Socket, p params.Params) (*rend.Root, error) {
 	event := p.String("event")
 
 	view := l.route.GetView()
+
+	p = params.Merge(
+		p,
+		l.route.GetParams(),
+	)
 
 	if err := TryEvent(view, s, event, p); err != nil {
 		return nil, err
@@ -147,12 +161,14 @@ func (l *lifecycle) StaticRender(url string) (string, error) {
 
 	view := route.GetView()
 
-	err = TryMount(view, nil, nil)
+	p := l.route.GetParams()
+
+	err = TryMount(view, nil, p)
 	if err != nil {
 		return "", err
 	}
 
-	err = TryParams(view, nil, nil)
+	err = TryParams(view, nil, p)
 	if err != nil {
 		return "", err
 	}
@@ -166,7 +182,7 @@ func (l *lifecycle) StaticRender(url string) (string, error) {
 		l.router.GetLayout()(
 			html.Attrs(
 				html.DataAttr("phx-main"),
-				html.DataAttr("phx-session"), // TODO: do we need to implement this? Not sure exactly how this works.
+				html.DataAttr("phx-session"),
 				html.IdAttr(
 					fmt.Sprintf("phx-%s", xid.New().String()),
 				),
