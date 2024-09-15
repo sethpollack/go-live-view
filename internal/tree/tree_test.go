@@ -24,6 +24,13 @@ func TestFindNode(t *testing.T) {
 			expectParams: map[string]any{},
 		},
 		{
+			name:         "partial match",
+			paths:        []string{"/foo"},
+			search:       "/foo/bar",
+			expect:       "/foo",
+			expectParams: map[string]any{},
+		},
+		{
 			name:         "simple",
 			paths:        []string{"/", "/foo", "/bar"},
 			search:       "/bar",

@@ -39,14 +39,33 @@ type handler interface {
 	Group(path string, view lv.View, opts ...routeOption) *routeGroup
 }
 
-func TestRouter(t *testing.T) {
+func TestGetRoute(t *testing.T) {
 	tt := []struct {
 		name           string
 		path           string
 		routes         []routes
 		expected       string
 		expectedParams params.Params
+		expectedError  error
 	}{
+		{
+			name: "not found",
+			path: "/nonexistent",
+			routes: []routes{
+				{path: "/", lv: &testLive{name: "home"}},
+			},
+			expected:      "<div>404 Not Found</div>",
+			expectedError: lv.NotFoundError,
+		},
+		{
+			name: "partial match",
+			path: "/test/nonexistent",
+			routes: []routes{
+				{path: "/test", lv: &testLive{name: "test"}},
+			},
+			expected:       "<div>test</div>",
+			expectedParams: params.Params{},
+		},
 		{
 			name: "simple routes",
 			path: "/",
@@ -234,19 +253,138 @@ func TestRouter(t *testing.T) {
 			)
 			createRoutes(rt, tc.routes)
 			route, err := rt.GetRoute(tc.path)
-			if err != nil {
-				t.Fatalf("error getting route: %v", err)
-			}
+			assert.Equal(t, tc.expectedError, err)
 
 			assert.Equal(t, tc.expectedParams, route.GetParams())
 
 			node, err := route.GetView().Render(nil)
 			if err != nil {
-				t.Fatalf("error rendering route: %v", err)
+				t.Errorf("error rendering route: %v", err)
 			}
 
 			result := rend.RenderString(node)
 			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestRoutable(t *testing.T) {
+	tt := []struct {
+		name     string
+		from     string
+		to       string
+		routes   []routes
+		expected bool
+	}{
+		{
+			name: "same session",
+			from: "/test",
+			to:   "/test",
+			routes: []routes{
+				{path: "/test", lv: &testLive{
+					name: "test",
+				}},
+			},
+			expected: true,
+		},
+		{
+			name: "same session, different path",
+			from: "/test",
+			to:   "/foo",
+			routes: []routes{
+				{path: "/test", lv: &testLive{
+					name: "test",
+				}},
+				{path: "/foo", lv: &testLive{
+					name: "foo",
+				}},
+			},
+			expected: true,
+		},
+		{
+			name: "different session",
+			from: "/test",
+			to:   "/foo",
+			routes: []routes{
+				{path: "/test", lv: &testLive{
+					name: "test",
+				},
+					opts: []routeOption{
+						WithSession("123"),
+					},
+				},
+				{path: "/foo", lv: &testLive{
+					name: "foo",
+				},
+					opts: []routeOption{
+						WithSession("456"),
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "same parent, different session",
+			from: "/test/foo",
+			to:   "/test/bar",
+			routes: []routes{
+				{path: "/test", lv: &testLive{
+					name: "test",
+				},
+					children: []routes{
+						{path: "/foo", lv: &testLive{
+							name: "foo",
+						},
+							opts: []routeOption{
+								WithSession("123"),
+							},
+						},
+						{path: "/bar", lv: &testLive{
+							name: "bar",
+						},
+							opts: []routeOption{
+								WithSession("456"),
+							},
+						},
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "group session",
+			from: "/test/foo",
+			to:   "/test/bar",
+			routes: []routes{
+				{path: "/test", lv: &testLive{
+					name: "test",
+				},
+					opts: []routeOption{
+						WithSession("123"),
+					},
+					children: []routes{
+						{path: "/foo", lv: &testLive{
+							name: "foo",
+						}},
+						{path: "/bar", lv: &testLive{
+							name: "bar",
+						}},
+					},
+				},
+			},
+			expected: true,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			rt := NewRouter(testLayout)
+			createRoutes(rt, tc.routes)
+			from, err := rt.GetRoute(tc.from)
+			assert.NoError(t, err)
+			to, err := rt.GetRoute(tc.to)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expected, rt.Routable(from, to))
 		})
 	}
 }
