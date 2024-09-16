@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/rs/xid"
 	"github.com/sethpollack/go-live-view/html"
@@ -43,6 +44,8 @@ type lifecycle struct {
 	tree      *rend.Root
 	tokenizer tokenizer
 	session   sessionGetter
+
+	firstJoin bool
 }
 
 func NewLifecycle(
@@ -54,6 +57,7 @@ func NewLifecycle(
 		router:    r,
 		tokenizer: tokenizer,
 		session:   session,
+		firstJoin: true,
 	}
 }
 
@@ -62,16 +66,7 @@ func (l *lifecycle) Join(s Socket, p params.Params) (*rend.Root, error) {
 
 	route, err := l.router.GetRoute(url)
 	if err != nil {
-		if errors.Is(err, NotFoundError) {
-			node, err := route.GetView().Render(nil)
-			if err != nil {
-				return nil, err
-			}
-
-			return rend.RenderTree(node), nil
-		}
-
-		return nil, err
+		return render404(route, err)
 	}
 
 	if l.route != nil && !l.router.Routable(l.route, route) {
@@ -86,13 +81,16 @@ func (l *lifecycle) Join(s Socket, p params.Params) (*rend.Root, error) {
 
 	view := route.GetView()
 
-	session := l.decodeSession(p)
-
 	p = params.Merge(
 		p,
 		route.GetParams(),
-		session,
+		l.decodeSession(p),
 	)
+
+	if l.firstJoin {
+		p = params.Merge(p, l.decodeStatic(p))
+		l.firstJoin = false
+	}
 
 	err = TryMount(view, s, p)
 	if err != nil {
@@ -123,16 +121,7 @@ func (l *lifecycle) Params(s Socket, p params.Params) (*rend.Root, error) {
 
 	route, err := l.router.GetRoute(url)
 	if err != nil {
-		if errors.Is(err, NotFoundError) {
-			node, err := route.GetView().Render(nil)
-			if err != nil {
-				return nil, err
-			}
-
-			return rend.RenderTree(node), nil
-		}
-
-		return nil, err
+		return render404(route, err)
 	}
 
 	if !l.router.Routable(l.route, route) {
@@ -210,16 +199,7 @@ func (l *lifecycle) Event(s Socket, p params.Params) (*rend.Root, error) {
 func (l *lifecycle) StaticRender(w http.ResponseWriter, r *http.Request) (string, error) {
 	route, err := l.router.GetRoute(r.URL.Path)
 	if err != nil {
-		if errors.Is(err, NotFoundError) {
-			node, err := route.GetView().Render(nil)
-			if err != nil {
-				return "", err
-			}
-
-			return rend.RenderString(node), nil
-		}
-
-		return "", err
+		return render404String(route, err)
 	}
 
 	view := route.GetView()
@@ -246,6 +226,7 @@ func (l *lifecycle) StaticRender(w http.ResponseWriter, r *http.Request) (string
 			html.Attrs(
 				html.DataAttr("phx-main"),
 				html.DataAttr("phx-session", l.encodeSession(r)),
+				html.DataAttr("phx-static", l.encodeStatic(w, r)),
 				html.IdAttr(
 					fmt.Sprintf("phx-%s", xid.New().String()),
 				),
@@ -378,6 +359,15 @@ func (l *lifecycle) Progress(s Socket, p params.Params) (*rend.Root, error) {
 	return diff, nil
 }
 
+func (l *lifecycle) encodeSession(r *http.Request) string {
+	data, err := l.tokenizer.Encode(l.session.Get(r))
+	if err != nil {
+		return ""
+	}
+
+	return data
+}
+
 func (l *lifecycle) decodeSession(p params.Params) map[string]any {
 	decode := map[string]any{}
 
@@ -392,12 +382,10 @@ func (l *lifecycle) decodeSession(p params.Params) map[string]any {
 		return nil
 	}
 
-	decodeFlash(decode)
-
 	return decode
 }
 
-func (l *lifecycle) encodeSession(r *http.Request) string {
+func (l *lifecycle) encodeStatic(w http.ResponseWriter, r *http.Request) string {
 	encode := map[string]any{}
 
 	if cookie, err := r.Cookie(flashKey); err == nil {
@@ -405,10 +393,12 @@ func (l *lifecycle) encodeSession(r *http.Request) string {
 		encode["flash"] = flash
 	}
 
-	session := l.session.Get(r)
-	for k, v := range session {
-		encode[k] = v
-	}
+	http.SetCookie(w, &http.Cookie{
+		Name:    flashKey,
+		Value:   "",
+		Expires: time.Unix(0, 0),
+		Path:    "/",
+	})
 
 	data, err := l.tokenizer.Encode(encode)
 	if err != nil {
@@ -416,6 +406,25 @@ func (l *lifecycle) encodeSession(r *http.Request) string {
 	}
 
 	return data
+}
+
+func (l *lifecycle) decodeStatic(p params.Params) map[string]any {
+	decode := map[string]any{}
+
+	static := p.String("static")
+	if static == "" {
+		return decode
+	}
+	delete(p, "static")
+
+	err := l.tokenizer.Decode(static, &decode)
+	if err != nil {
+		return nil
+	}
+
+	decodeFlash(decode)
+
+	return decode
 }
 
 func decodeFlash(m map[string]any) {
@@ -437,4 +446,30 @@ func decodeFlash(m map[string]any) {
 	}
 
 	m["flash"] = flashMap
+}
+
+func render404String(route Route, err error) (string, error) {
+	if errors.Is(err, NotFoundError) {
+		node, err := route.GetView().Render(nil)
+		if err != nil {
+			return "", err
+		}
+
+		return rend.RenderString(node), nil
+	}
+
+	return "", err
+}
+
+func render404(route Route, err error) (*rend.Root, error) {
+	if errors.Is(err, NotFoundError) {
+		node, err := route.GetView().Render(nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return rend.RenderTree(node), nil
+	}
+
+	return nil, err
 }

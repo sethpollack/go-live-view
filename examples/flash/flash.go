@@ -20,6 +20,8 @@ func (l *Live) Event(s lv.Socket, event string, p params.Params) error {
 		s.PushNavigate("/", lv.WithFlash("info", "from navigate!"))
 	case "redirect":
 		s.Redirect("/", lv.WithFlash("info", "from redirect!"))
+	case "no-flash-navigate":
+		s.PushNavigate("/")
 	}
 
 	return nil
@@ -44,6 +46,10 @@ func (l *Live) Render(_ rend.Node) (rend.Node, error) {
 			html.Attr("phx-click", "lv:flash"),
 			html.Attr("phx-value-key", "info"),
 			html.Attr("phx-value-msg", "from event"),
+		),
+		html.Button(
+			std.Text("no flash navigate"),
+			html.Attr("phx-click", "no-flash-navigate"),
 		),
 	), nil
 }
