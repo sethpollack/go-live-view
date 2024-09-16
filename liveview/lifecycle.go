@@ -197,7 +197,7 @@ func (l *lifecycle) Event(s Socket, p params.Params) (*rend.Root, error) {
 }
 
 func (l *lifecycle) StaticRender(w http.ResponseWriter, r *http.Request) (string, error) {
-	route, err := l.router.GetRoute(r.URL.Path)
+	route, err := l.router.GetRoute(r.URL.String())
 	if err != nil {
 		return render404String(route, err)
 	}
