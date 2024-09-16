@@ -25,8 +25,8 @@ func Unpkg(pkg, version string) rend.Node {
 func RootLayout(children ...rend.Node) rend.Node {
 	return html.Html(
 		html.Head(
-			Unpkg("phoenix", "1.7.10"),
-			Unpkg("phoenix_live_view", "0.20.3"),
+			Unpkg("phoenix", "1.7.14"),
+			Unpkg("phoenix_live_view", "1.0.0-rc.6"),
 			Unpkg("topbar", "2.0.2"),
 			Unpkg("apexcharts", "3.26.0"),
 		),

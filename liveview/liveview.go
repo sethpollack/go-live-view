@@ -6,6 +6,8 @@ import (
 	"github.com/sethpollack/go-live-view/uploads"
 )
 
+var Version = "1.0.0-rc.6"
+
 type View interface {
 	Render(rend.Node) (rend.Node, error)
 }

@@ -41,7 +41,10 @@ func (l *lvChannel) Join(s channel.Socket, p any) error {
 		return err
 	}
 
-	return s.Push("rendered", rend)
+	return s.Push("", map[string]any{
+		"rendered":         rend,
+		"liveview_version": lv.Version,
+	})
 }
 
 func (l *lvChannel) Leave(s channel.Socket) error {
