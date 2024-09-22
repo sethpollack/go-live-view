@@ -208,6 +208,30 @@ func TestNode(t *testing.T) {
 			},
 		},
 		{
+			name: "if true",
+			tests: []struct {
+				name string
+				node rend.Node
+			}{
+				{
+					name: "simple",
+					node: If(true, Raw(`<div>true</div>`)),
+				},
+			},
+		},
+		{
+			name: "if false",
+			tests: []struct {
+				name string
+				node rend.Node
+			}{
+				{
+					name: "simple",
+					node: If(false, Raw(`<div>true</div>`)),
+				},
+			},
+		},
+		{
 			name: "text",
 			tests: []struct {
 				name string
