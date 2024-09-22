@@ -1,6 +1,7 @@
 package router
 
 import (
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
@@ -31,6 +32,9 @@ type route struct {
 
 	parent *route
 	router *router
+
+	httpMounts []func(http.ResponseWriter, *http.Request, params.Params) error
+	mounts     []func(lv.Socket, params.Params) error
 }
 
 type routeGroup struct {
@@ -85,6 +89,18 @@ func WithParams(params params.Params) routeOption {
 func WithSession(session string) routeOption {
 	return func(r *route) {
 		r.session = session
+	}
+}
+
+func WithHttpMount(middleware func(http.ResponseWriter, *http.Request, params.Params) error) routeOption {
+	return func(r *route) {
+		r.httpMounts = append(r.httpMounts, middleware)
+	}
+}
+
+func WithMount(middleware func(lv.Socket, params.Params) error) routeOption {
+	return func(r *route) {
+		r.mounts = append(r.mounts, middleware)
 	}
 }
 
@@ -183,6 +199,14 @@ func (r *route) GetView() lv.View {
 
 func (r *route) GetParams() params.Params {
 	return r.params
+}
+
+func (r *route) GetHttpMounts() []func(http.ResponseWriter, *http.Request, params.Params) error {
+	return r.httpMounts
+}
+
+func (r *route) GetMounts() []func(lv.Socket, params.Params) error {
+	return r.mounts
 }
 
 func (rg *routeGroup) Group(path string, view lv.View, opts ...routeOption) *routeGroup {

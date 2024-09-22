@@ -1,6 +1,8 @@
 package liveview
 
 import (
+	"net/http"
+
 	"github.com/sethpollack/go-live-view/params"
 	"github.com/sethpollack/go-live-view/rend"
 	"github.com/sethpollack/go-live-view/uploads"
@@ -10,6 +12,10 @@ var Version = "1.0.0-rc.6"
 
 type View interface {
 	Render(rend.Node) (rend.Node, error)
+}
+
+type HTTPMounter interface {
+	HttpMount(http.ResponseWriter, *http.Request, params.Params) error
 }
 
 type Mounter interface {
@@ -30,6 +36,14 @@ type EventHandler interface {
 
 type Uploader interface {
 	Uploads() *uploads.Uploads
+}
+
+func TryHttpMount(a any, w http.ResponseWriter, r *http.Request, p params.Params) error {
+	if m, ok := a.(HTTPMounter); ok {
+		return m.HttpMount(w, r, p)
+	}
+
+	return nil
 }
 
 func TryMount(a any, s Socket, p params.Params) error {

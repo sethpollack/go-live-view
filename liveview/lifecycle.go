@@ -21,6 +21,8 @@ var NotFoundError = errors.New("route not found")
 type Route interface {
 	GetView() View
 	GetParams() params.Params
+	GetHttpMounts() []func(http.ResponseWriter, *http.Request, params.Params) error
+	GetMounts() []func(Socket, params.Params) error
 }
 
 type Router interface {
@@ -90,6 +92,13 @@ func (l *lifecycle) Join(s Socket, p params.Params) (*rend.Root, error) {
 	if l.firstJoin {
 		p = params.Merge(p, l.decodeStatic(p))
 		l.firstJoin = false
+	}
+
+	for _, mount := range route.GetMounts() {
+		err = mount(s, p)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = TryMount(view, s, p)
@@ -205,6 +214,18 @@ func (l *lifecycle) StaticRender(w http.ResponseWriter, r *http.Request) (string
 	view := route.GetView()
 
 	p := route.GetParams()
+
+	for _, mount := range route.GetHttpMounts() {
+		err = mount(w, r, p)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	err = TryHttpMount(view, w, r, p)
+	if err != nil {
+		return "", err
+	}
 
 	err = TryMount(view, nil, p)
 	if err != nil {

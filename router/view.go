@@ -1,6 +1,8 @@
 package router
 
 import (
+	"net/http"
+
 	lv "github.com/sethpollack/go-live-view/liveview"
 	"github.com/sethpollack/go-live-view/params"
 	"github.com/sethpollack/go-live-view/rend"
@@ -26,6 +28,12 @@ func newWrapper(r *route) *wrapper {
 		route:  r,
 		router: r.router,
 	}
+}
+
+func (v *wrapper) HttpMount(w http.ResponseWriter, r *http.Request, p params.Params) error {
+	return walk(v.route, func(route *route) error {
+		return lv.TryHttpMount(route.view, w, r, p)
+	})
 }
 
 func (v *wrapper) Mount(s lv.Socket, p params.Params) error {
