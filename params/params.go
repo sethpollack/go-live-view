@@ -25,6 +25,10 @@ func Merge(pms ...Params) Params {
 	return result
 }
 
+func (p Params) Set(key string, value any) {
+	p[key] = value
+}
+
 func (p Params) Map(key ...string) Params {
 	for _, k := range key {
 		n, ok := p[k]
