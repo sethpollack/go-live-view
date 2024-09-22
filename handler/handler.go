@@ -85,6 +85,20 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	).StaticRender(w, r)
 
 	if err != nil {
+		switch err.(type) {
+		case lv.HttpError:
+			httpErr := err.(lv.HttpError)
+			w.WriteHeader(httpErr.Code())
+			w.Write([]byte(httpErr.Error()))
+			return
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf("Error: %s", err.Error())))
+			return
+		}
+	}
+
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("Error: %s", err.Error())))
 		return
