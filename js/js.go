@@ -10,9 +10,9 @@ const (
 	defaultTransitionTime = 300
 )
 
-type operation []any
+type Operation []any
 
-func JS(ops ...operation) string {
+func JS(ops ...Operation) string {
 	jsonData, err := json.Marshal(ops)
 	if err != nil {
 		return ""
@@ -32,7 +32,7 @@ type pushArgs struct {
 	*PushArgs
 }
 
-func Push(event string, args *PushArgs) operation {
+func Push(event string, args *PushArgs) Operation {
 	a := &pushArgs{
 		Event:    event,
 		PushArgs: args,
@@ -42,7 +42,7 @@ func Push(event string, args *PushArgs) operation {
 		a.PushArgs = &PushArgs{}
 	}
 
-	return operation{"push", a}
+	return Operation{"push", a}
 }
 
 type DispatchArgs struct {
@@ -57,7 +57,7 @@ type dispatchArgs struct {
 	*DispatchArgs
 }
 
-func Dispatch(event string, args *DispatchArgs) operation {
+func Dispatch(event string, args *DispatchArgs) Operation {
 	a := &dispatchArgs{
 		Event:        event,
 		DispatchArgs: args,
@@ -70,7 +70,7 @@ func Dispatch(event string, args *DispatchArgs) operation {
 	if a.Bubbles == nil {
 		a.Bubbles = Bool(true)
 	}
-	return operation{"dispatch", a}
+	return Operation{"dispatch", a}
 }
 
 type ToggleArgs struct {
@@ -89,7 +89,7 @@ type toggleArgs struct {
 	*ToggleArgs
 }
 
-func Toggle(event string, args *ToggleArgs) operation {
+func Toggle(event string, args *ToggleArgs) Operation {
 	a := &toggleArgs{
 		Event:      event,
 		ToggleArgs: args,
@@ -123,7 +123,7 @@ func Toggle(event string, args *ToggleArgs) operation {
 		a.Blocking = Bool(true)
 	}
 
-	return operation{"toggle", a}
+	return Operation{"toggle", a}
 }
 
 type ShowArgs struct {
@@ -139,7 +139,7 @@ type showArgs struct {
 	*ShowArgs
 }
 
-func Show(args *ShowArgs) operation {
+func Show(args *ShowArgs) Operation {
 	a := &showArgs{
 		ShowArgs: args,
 	}
@@ -162,7 +162,7 @@ func Show(args *ShowArgs) operation {
 		a.Blocking = Bool(true)
 	}
 
-	return operation{"show", a}
+	return Operation{"show", a}
 }
 
 type HideArgs struct {
@@ -177,7 +177,7 @@ type hideArgs struct {
 	*HideArgs
 }
 
-func Hide(args *HideArgs) operation {
+func Hide(args *HideArgs) Operation {
 	a := &hideArgs{
 		HideArgs: args,
 	}
@@ -200,10 +200,11 @@ func Hide(args *HideArgs) operation {
 		a.Blocking = Bool(true)
 	}
 
-	return operation{"hide", a}
+	return Operation{"hide", a}
 }
 
 type AddClassArgs struct {
+	To         string    `json:"to,omitempty"`
 	Transition [3]string `json:"-"`
 	Time       *int      `json:"time,omitempty"`
 	Blocking   *bool     `json:"blocking,omitempty"`
@@ -215,7 +216,7 @@ type addClassArgs struct {
 	*AddClassArgs
 }
 
-func AddClass(names string, args *AddClassArgs) operation {
+func AddClass(names string, args *AddClassArgs) Operation {
 	a := &addClassArgs{
 		Names:        classNames(names),
 		AddClassArgs: args,
@@ -239,7 +240,7 @@ func AddClass(names string, args *AddClassArgs) operation {
 		a.Blocking = Bool(true)
 	}
 
-	return operation{"add_class", a}
+	return Operation{"add_class", a}
 }
 
 type ToggleClassArgs struct {
@@ -255,7 +256,7 @@ type toggleClassArgs struct {
 	*ToggleClassArgs
 }
 
-func ToggleClass(names string, args *ToggleClassArgs) operation {
+func ToggleClass(names string, args *ToggleClassArgs) Operation {
 	a := &toggleClassArgs{
 		Names:           classNames(names),
 		ToggleClassArgs: args,
@@ -279,7 +280,7 @@ func ToggleClass(names string, args *ToggleClassArgs) operation {
 		a.Blocking = Bool(true)
 	}
 
-	return operation{"toggle_class", a}
+	return Operation{"toggle_class", a}
 }
 
 type RemoveClassArgs struct {
@@ -294,7 +295,7 @@ type removeClassArgs struct {
 	*RemoveClassArgs
 }
 
-func RemoveClass(names string, args *RemoveClassArgs) operation {
+func RemoveClass(names string, args *RemoveClassArgs) Operation {
 	a := &removeClassArgs{
 		Names:           classNames(names),
 		RemoveClassArgs: args,
@@ -318,7 +319,7 @@ func RemoveClass(names string, args *RemoveClassArgs) operation {
 		a.Blocking = Bool(true)
 	}
 
-	return operation{"remove_class", a}
+	return Operation{"remove_class", a}
 }
 
 type TransitionArgs struct {
@@ -332,7 +333,7 @@ type transitionArgs struct {
 	*TransitionArgs
 }
 
-func Transition(transition [3]string, args *TransitionArgs) operation {
+func Transition(transition [3]string, args *TransitionArgs) Operation {
 	a := &transitionArgs{
 		Transition: [3][]string{
 			classNames(transition[0]),
@@ -354,7 +355,7 @@ func Transition(transition [3]string, args *TransitionArgs) operation {
 		a.Blocking = Bool(true)
 	}
 
-	return operation{"transition", a}
+	return Operation{"transition", a}
 }
 
 type SetAttrArgs struct {
@@ -366,7 +367,7 @@ type setAttrArgs struct {
 	*SetAttrArgs
 }
 
-func SetAttr(key string, value any, args *SetAttrArgs) operation {
+func SetAttr(key string, value any, args *SetAttrArgs) Operation {
 	a := &setAttrArgs{
 		Attr:        [2]any{key, value},
 		SetAttrArgs: args,
@@ -376,7 +377,7 @@ func SetAttr(key string, value any, args *SetAttrArgs) operation {
 		a.SetAttrArgs = &SetAttrArgs{}
 	}
 
-	return operation{"set_attr", a}
+	return Operation{"set_attr", a}
 }
 
 type RemoveAttrArgs struct {
@@ -388,7 +389,7 @@ type removeAttrArgs struct {
 	*RemoveAttrArgs
 }
 
-func RemoveAttr(attr string, args *RemoveAttrArgs) operation {
+func RemoveAttr(attr string, args *RemoveAttrArgs) Operation {
 	a := &removeAttrArgs{
 		Attr:           attr,
 		RemoveAttrArgs: args,
@@ -398,7 +399,7 @@ func RemoveAttr(attr string, args *RemoveAttrArgs) operation {
 		a.RemoveAttrArgs = &RemoveAttrArgs{}
 	}
 
-	return operation{"remove_attr", a}
+	return Operation{"remove_attr", a}
 }
 
 type ToggleAttrArgs struct {
@@ -410,7 +411,7 @@ type toggleAttrArgs struct {
 	*ToggleAttrArgs
 }
 
-func ToggleAttr(attr string, val string, args *ToggleAttrArgs) operation {
+func ToggleAttr(attr string, val string, args *ToggleAttrArgs) Operation {
 	a := &toggleAttrArgs{
 		Attr:           [2]any{attr, val},
 		ToggleAttrArgs: args,
@@ -420,7 +421,7 @@ func ToggleAttr(attr string, val string, args *ToggleAttrArgs) operation {
 		a.ToggleAttrArgs = &ToggleAttrArgs{}
 	}
 
-	return operation{"toggle_attr", a}
+	return Operation{"toggle_attr", a}
 }
 
 type ToggleAttrsArgs struct {
@@ -432,7 +433,7 @@ type toggleAttrsArgs struct {
 	*ToggleAttrsArgs
 }
 
-func ToggleAttrs(attr string, val1 string, val2 string, args *ToggleAttrsArgs) operation {
+func ToggleAttrs(attr string, val1 string, val2 string, args *ToggleAttrsArgs) Operation {
 	a := &toggleAttrsArgs{
 		Attrs:           [3]any{attr, val1, val2},
 		ToggleAttrsArgs: args,
@@ -442,44 +443,44 @@ func ToggleAttrs(attr string, val1 string, val2 string, args *ToggleAttrsArgs) o
 		a.ToggleAttrsArgs = &ToggleAttrsArgs{}
 	}
 
-	return operation{"toggle_attr", a}
+	return Operation{"toggle_attr", a}
 }
 
 type FocusArgs struct {
 	To string `json:"to,omitempty"`
 }
 
-func Focus(args *FocusArgs) operation {
+func Focus(args *FocusArgs) Operation {
 	if args == nil {
 		args = &FocusArgs{}
 	}
-	return operation{"focus", args}
+	return Operation{"focus", args}
 }
 
 type FocusFirstArgs struct {
 	To string `json:"to,omitempty"`
 }
 
-func FocusFirst(args *FocusFirstArgs) operation {
+func FocusFirst(args *FocusFirstArgs) Operation {
 	if args == nil {
 		args = &FocusFirstArgs{}
 	}
-	return operation{"focus_first", args}
+	return Operation{"focus_first", args}
 }
 
 type PushFocusArgs struct {
 	To string `json:"to,omitempty"`
 }
 
-func PushFocus(args *PushFocusArgs) operation {
+func PushFocus(args *PushFocusArgs) Operation {
 	if args == nil {
 		args = &PushFocusArgs{}
 	}
-	return operation{"push_focus", args}
+	return Operation{"push_focus", args}
 }
 
-func PopFocus() operation {
-	return operation{"pop_focus", []any{}}
+func PopFocus() Operation {
+	return Operation{"pop_focus", []any{}}
 }
 
 type NavigateArgs struct {
@@ -491,7 +492,7 @@ type navigateArgs struct {
 	*NavigateArgs
 }
 
-func Navigate(href string, args *NavigateArgs) operation {
+func Navigate(href string, args *NavigateArgs) Operation {
 	a := &navigateArgs{
 		Href:         href,
 		NavigateArgs: args,
@@ -501,7 +502,7 @@ func Navigate(href string, args *NavigateArgs) operation {
 		a.NavigateArgs = &NavigateArgs{}
 	}
 
-	return operation{"navigate", a}
+	return Operation{"navigate", a}
 }
 
 type PatchArgs struct {
@@ -513,7 +514,7 @@ type patchArgs struct {
 	*PatchArgs
 }
 
-func Patch(href string, args *PatchArgs) operation {
+func Patch(href string, args *PatchArgs) Operation {
 	a := &patchArgs{
 		Href:      href,
 		PatchArgs: args,
@@ -523,7 +524,7 @@ func Patch(href string, args *PatchArgs) operation {
 		a.PatchArgs = &PatchArgs{}
 	}
 
-	return operation{"patch", a}
+	return Operation{"patch", a}
 }
 
 type ExecArgs struct {
@@ -535,7 +536,7 @@ type execArgs struct {
 	*ExecArgs
 }
 
-func Exec(attr string, args *ExecArgs) operation {
+func Exec(attr string, args *ExecArgs) Operation {
 	a := &execArgs{
 		Attr:     attr,
 		ExecArgs: args,
@@ -545,7 +546,7 @@ func Exec(attr string, args *ExecArgs) operation {
 		a.ExecArgs = &ExecArgs{}
 	}
 
-	return operation{"exec", a}
+	return Operation{"exec", a}
 }
 
 func Bool(b bool) *bool {
