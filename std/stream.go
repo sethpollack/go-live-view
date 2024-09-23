@@ -39,13 +39,18 @@ func (s *stream) Render(diff bool, root *rend.Root, t *rend.Rend, b *strings.Bui
 	}
 
 	if len(s.stream.Additions) == 0 {
+		stream := []any{
+			root.NextStreamID(),
+			[]any{},
+			s.stream.Deletions,
+		}
+
+		if s.stream.Reset {
+			stream = append(stream, true)
+		}
+
 		t.AddDynamic(&rend.Comprehension{
-			Stream: []any{
-				root.NextStreamID(),
-				[]any{},
-				s.stream.Deletions,
-				s.stream.Reset,
-			},
+			Stream: stream,
 		})
 		t.AddStatic(b.String())
 		b.Reset()
@@ -77,16 +82,21 @@ func (s *stream) Render(diff bool, root *rend.Root, t *rend.Rend, b *strings.Bui
 	}
 
 	if staticsMatch {
+		stream := []any{
+			root.NextStreamID(),
+			inserts,
+			s.stream.Deletions,
+		}
+
+		if s.stream.Reset {
+			stream = append(stream, true)
+		}
+
 		t.AddDynamic(&rend.Comprehension{
 			Static:      rends[0].Static,
 			Fingerprint: rends[0].Fingerprint,
 			Dynamics:    copyDynamics(rends),
-			Stream: []any{
-				root.NextStreamID(),
-				inserts,
-				s.stream.Deletions,
-				s.stream.Reset,
-			},
+			Stream:      stream,
 		})
 		t.AddStatic(b.String())
 		b.Reset()

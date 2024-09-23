@@ -3,11 +3,13 @@ package stream
 import "fmt"
 
 type StreamGetter struct {
+	opts   []StreamOption
 	Stream *Stream
 }
 
 func New(name string, options ...StreamOption) *StreamGetter {
 	return &StreamGetter{
+		opts:   options,
 		Stream: newStream(name, options...),
 	}
 }
@@ -19,16 +21,7 @@ func (s *StreamGetter) Get() *Stream {
 
 	stream := s.Stream
 
-	// Reset the stream
-	s.Stream = &Stream{
-		Name:      stream.Name,
-		IDFunc:    stream.IDFunc,
-		Additions: make([]Item, 0),
-		Deletions: make([]string, 0),
-		Reset:     stream.Reset,
-		Limit:     stream.Limit,
-		StreamAt:  stream.StreamAt,
-	}
+	s.Stream = newStream(stream.Name, s.opts...)
 
 	return stream
 }
