@@ -83,7 +83,6 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	resp, err := lv.NewLifecycle(
 		h.setupRoutes(), h.tokenizer, h.sessionGetter,
 	).StaticRender(w, r)
-
 	if err != nil {
 		switch err.(type) {
 		case lv.HttpError:
@@ -96,12 +95,6 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(fmt.Sprintf("Error: %s", err.Error())))
 			return
 		}
-	}
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(fmt.Sprintf("Error: %s", err.Error())))
-		return
 	}
 
 	w.Write([]byte(resp))
