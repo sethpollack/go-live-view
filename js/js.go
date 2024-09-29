@@ -284,6 +284,7 @@ func ToggleClass(names string, args *ToggleClassArgs) Operation {
 }
 
 type RemoveClassArgs struct {
+	To         string    `json:"to,omitempty"`
 	Transition [3]string `json:"-"`
 	Time       *int      `json:"time,omitempty"`
 	Blocking   *bool     `json:"blocking,omitempty"`
